@@ -1,6 +1,5 @@
 'use client';
 
-/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from 'react';
 
 const STORAGE_KEY = 'powertrack.isLoggedIn';
@@ -22,13 +21,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // restore auth state from localStorage
     try {
       const stored = localStorage.getItem(STORAGE_KEY) === '1';
-      setIsLoggedIn(stored);
+      
+      // setIsLoggedIn(stored);
     } catch (e) {
       // If reading localStorage fails (e.g., privacy mode), default to logged out
       // and surface the error for debugging when available.
       // eslint-disable-next-line no-console
       console.warn('Auth restore failed', e);
-      setIsLoggedIn(false);
+      // setIsLoggedIn(false);
     } finally {
       setLoading(false);
     }

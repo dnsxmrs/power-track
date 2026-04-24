@@ -41,7 +41,7 @@ rm -rf src/app/pages/    # Old component-based pages
 ## 📁 Route Structure
 
 | URL | File |
-|-----|------|
+| ----- | ------ |
 | `/` | Redirects to `/login` or `/dashboard` |
 | `/login` | `src/app/login/page.tsx` |
 | `/dashboard` | `src/app/(auth)/dashboard/page.tsx` |

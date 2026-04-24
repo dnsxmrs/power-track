@@ -109,7 +109,7 @@ export default function ReportsPage() {
             className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${
               view === v
                 ? 'bg-[#00d4ff]/20 text-[#00d4ff] border border-[#00d4ff]/30'
-                : 'bg-white/[0.05] text-slate-400 hover:text-white'
+                : 'bg-white/5 text-slate-400 hover:text-white'
             }`}
           >
             {v}

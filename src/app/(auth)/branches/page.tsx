@@ -77,28 +77,28 @@ export default function BranchesPage() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <GlassCard className="!p-5">
+        <GlassCard className="p-5!">
           <div className="flex items-center space-x-3 mb-2">
             <BuildingIcon className="w-5 h-5 text-[#00d4ff]" />
             <p className="text-sm text-slate-400">Total Branches</p>
           </div>
           <p className="text-2xl font-bold text-white">4</p>
         </GlassCard>
-        <GlassCard className="!p-5">
+        <GlassCard className="p-5!">
           <div className="flex items-center space-x-3 mb-2">
             <ActivityIcon className="w-5 h-5 text-indigo-400" />
             <p className="text-sm text-slate-400">Total Usage</p>
           </div>
           <p className="text-2xl font-bold text-white">45.9 kW</p>
         </GlassCard>
-        <GlassCard className="!p-5">
+        <GlassCard className="p-5!">
           <div className="flex items-center space-x-3 mb-2">
             <WalletIcon className="w-5 h-5 text-emerald-400" />
             <p className="text-sm text-slate-400">Total Cost</p>
           </div>
           <p className="text-2xl font-bold text-white">₱166,550</p>
         </GlassCard>
-        <GlassCard className="!p-5">
+        <GlassCard className="p-5!">
           <div className="flex items-center space-x-3 mb-2">
             <AlertTriangleIcon className="w-5 h-5 text-amber-400" />
             <p className="text-sm text-slate-400">Warnings</p>
@@ -113,7 +113,7 @@ export default function BranchesPage() {
             <GlassCard className="p-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-start space-x-4 flex-1">
-                  <div className="p-3 bg-white/[0.05] rounded-lg border border-white/[0.1]">
+                  <div className="p-3 bg-white/5 rounded-lg border border-white/10">
                     <MapPinIcon className="w-5 h-5 text-slate-300" />
                   </div>
                   <div className="flex-1">

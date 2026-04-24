@@ -38,7 +38,7 @@ export function MetricCard({
     <GlassCard className={`flex flex-col ${className}`} hover glowColor={glowColor}>
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center space-x-3">
-          <div className="p-2.5 bg-white/[0.05] rounded-xl border border-white/[0.1]">
+          <div className="p-2.5 bg-white/5 rounded-xl border border-white/10">
             <Icon className="w-5 h-5 text-[#00d4ff]" />
           </div>
           <h3 className="text-slate-400 font-medium text-sm">{title}</h3>

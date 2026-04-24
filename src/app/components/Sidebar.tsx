@@ -74,14 +74,14 @@ export function Sidebar({
       <div
         onMouseEnter={() => setCollapsed(false)}
         onMouseLeave={() => setCollapsed(true)}
-        className={`w-64 ${collapsed ? 'md:w-20' : 'md:w-64'} h-screen fixed left-0 top-0 glass-panel !rounded-none !border-y-0 !border-l-0 flex flex-col z-50 transform transition-all duration-300 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`w-64 ${collapsed ? 'md:w-20' : 'md:w-64'} h-screen fixed left-0 top-0 glass-panel rounded-none! border-y-0! border-l-0! flex flex-col z-50 transform transition-all duration-300 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'
           } md:translate-x-0`}
       >
         {/* Logo Area */}
         <div className="p-6 flex items-center space-x-3 mb-6">
           <div className="relative">
             <div className="absolute inset-0 bg-[#00d4ff] blur-md opacity-40 rounded-full"></div>
-            <div className="relative bg-gradient-to-br from-[#00d4ff] to-blue-600 p-2 rounded-xl">
+            <div className="relative bg-linear-to-br from-[#00d4ff] to-blue-600 p-2 rounded-xl">
               <ZapIcon className="w-6 h-6 text-white" />
             </div>
           </div>
@@ -93,7 +93,7 @@ export function Sidebar({
           <div className="ml-auto">
             <button
               onClick={onRequestClose}
-              className="ml-0 md:hidden p-2 rounded-lg text-slate-300 hover:bg-white/[0.04]"
+              className="ml-0 md:hidden p-2 rounded-lg text-slate-300 hover:bg-white/4"
               aria-label="Close menu"
             >
               <svg
@@ -122,8 +122,8 @@ export function Sidebar({
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
                 className={`w-full flex items-center ${collapsed ? 'justify-center' : 'justify-start'} space-x-3 px-4 py-3 rounded-xl transition-all duration-300 group relative ${isActive
-                    ? 'bg-white/[0.08] text-[#00d4ff]'
-                    : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200'
+                    ? 'bg-white/8 text-[#00d4ff]'
+                    : 'text-slate-400 hover:bg-white/4 hover:text-slate-200'
                   }`}
               >
                 {isActive && (
@@ -144,9 +144,9 @@ export function Sidebar({
         </nav>
 
         {/* User Area */}
-        <div className="p-4 mt-auto border-t border-white/[0.08]">
-          <div className={`flex items-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] ${collapsed ? 'justify-center' : ''}`}>
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-inner">
+        <div className="p-4 mt-auto border-t border-white/8">
+          <div className={`flex items-center p-3 rounded-xl bg-white/2 border border-white/5 ${collapsed ? 'justify-center' : ''}`}>
+            <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-inner">
               AD
             </div>
             {!collapsed && (

@@ -29,7 +29,7 @@ export default function SettingsPage() {
 
       <motion.div variants={itemVariants}>
         <GlassCard>
-          <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-white/[0.08]">
+          <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-white/8">
             <SlidersIcon className="w-5 h-5 text-[#00d4ff]" />
             <h2 className="text-lg font-semibold text-white">Alert Thresholds</h2>
           </div>
@@ -43,7 +43,7 @@ export default function SettingsPage() {
                 <input
                   type="number"
                   defaultValue={210}
-                  className="glass-input w-full bg-white/[0.04] border border-white/[0.1] rounded-lg px-4 py-2 text-white"
+                  className="glass-input w-full bg-white/4 border border-white/10 rounded-lg px-4 py-2 text-white"
                 />
               </div>
               <div>
@@ -53,7 +53,7 @@ export default function SettingsPage() {
                 <input
                   type="number"
                   defaultValue={240}
-                  className="glass-input w-full bg-white/[0.04] border border-white/[0.1] rounded-lg px-4 py-2 text-white"
+                  className="glass-input w-full bg-white/4 border border-white/10 rounded-lg px-4 py-2 text-white"
                 />
               </div>
             </div>
@@ -64,7 +64,7 @@ export default function SettingsPage() {
               <input
                 type="number"
                 defaultValue={40}
-                className="glass-input w-full bg-white/[0.04] border border-white/[0.1] rounded-lg px-4 py-2 text-white"
+                className="glass-input w-full bg-white/4 border border-white/10 rounded-lg px-4 py-2 text-white"
               />
               <p className="text-xs text-slate-500 mt-2">
                 Alerts will trigger when total consumption exceeds this value.
@@ -76,7 +76,7 @@ export default function SettingsPage() {
 
       <motion.div variants={itemVariants}>
         <GlassCard>
-          <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-white/[0.08]">
+          <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-white/8">
             <BellIcon className="w-5 h-5 text-indigo-400" />
             <h2 className="text-lg font-semibold text-white">Notification Preferences</h2>
           </div>
@@ -102,7 +102,7 @@ export default function SettingsPage() {
                 sms: false,
               },
             ].map((item, idx) => (
-              <div key={idx} className="flex items-start justify-between py-4 border-b border-white/[0.05] last:border-0">
+              <div key={idx} className="flex items-start justify-between py-4 border-b border-white/5 last:border-0">
                 <div>
                   <p className="text-sm font-medium text-white">{item.label}</p>
                   <p className="text-xs text-slate-400 mt-1">{item.desc}</p>
@@ -112,7 +112,7 @@ export default function SettingsPage() {
                     <input
                       type="checkbox"
                       defaultChecked={item.email}
-                      className="w-4 h-4 rounded border-white/[0.2] bg-white/[0.05] text-[#00d4ff]"
+                      className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#00d4ff]"
                     />
                     <span className="text-xs text-slate-400">Email</span>
                   </label>
@@ -121,7 +121,7 @@ export default function SettingsPage() {
                       <input
                         type="checkbox"
                         defaultChecked={item.sms}
-                        className="w-4 h-4 rounded border-white/[0.2] bg-white/[0.05] text-[#00d4ff]"
+                        className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#00d4ff]"
                       />
                       <span className="text-xs text-slate-400">SMS</span>
                     </label>
@@ -135,7 +135,7 @@ export default function SettingsPage() {
 
       <motion.div variants={itemVariants}>
         <GlassCard>
-          <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-white/[0.08]">
+          <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-white/8">
             <UserIcon className="w-5 h-5 text-emerald-400" />
             <h2 className="text-lg font-semibold text-white">Account Settings</h2>
           </div>
@@ -146,7 +146,7 @@ export default function SettingsPage() {
               <input
                 type="text"
                 defaultValue="Admin User"
-                className="glass-input w-full bg-white/[0.04] border border-white/[0.1] rounded-lg px-4 py-2 text-white"
+                className="glass-input w-full bg-white/4 border border-white/10 rounded-lg px-4 py-2 text-white"
               />
             </div>
             <div>
@@ -154,7 +154,7 @@ export default function SettingsPage() {
               <input
                 type="email"
                 defaultValue="admin@company.com"
-                className="glass-input w-full bg-white/[0.04] border border-white/[0.1] rounded-lg px-4 py-2 text-white"
+                className="glass-input w-full bg-white/4 border border-white/10 rounded-lg px-4 py-2 text-white"
               />
             </div>
           </div>
@@ -166,7 +166,7 @@ export default function SettingsPage() {
           <SaveIcon className="w-4 h-4" />
           Save Changes
         </button>
-        <button className="px-6 py-2 bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 font-medium rounded-lg border border-white/[0.1] transition-colors">
+        <button className="px-6 py-2 bg-white/5 hover:bg-white/10 text-slate-300 font-medium rounded-lg border border-white/10 transition-colors">
           Cancel
         </button>
       </motion.div>

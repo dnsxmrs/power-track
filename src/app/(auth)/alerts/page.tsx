@@ -92,15 +92,15 @@ export default function AlertsPage() {
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <GlassCard className="!p-4">
+        <GlassCard className="p-4!">
           <p className="text-sm text-slate-400 mb-1">Critical</p>
           <p className="text-2xl font-bold text-red-400">{criticalCount}</p>
         </GlassCard>
-        <GlassCard className="!p-4">
+        <GlassCard className="p-4!">
           <p className="text-sm text-slate-400 mb-1">Warnings</p>
           <p className="text-2xl font-bold text-amber-400">{warningCount}</p>
         </GlassCard>
-        <GlassCard className="!p-4">
+        <GlassCard className="p-4!">
           <p className="text-sm text-slate-400 mb-1">Total</p>
           <p className="text-2xl font-bold text-[#00d4ff]">{alertsData.length}</p>
         </GlassCard>
@@ -113,7 +113,7 @@ export default function AlertsPage() {
           placeholder="Search alerts..."
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
-          className="glass-input glass-input--plain !pl-12 w-full"
+          className="glass-input glass-input--plain pl-12! w-full"
         />
       </motion.div>
 
@@ -122,10 +122,10 @@ export default function AlertsPage() {
           const Icon = alert.icon;
           return (
             <motion.div key={alert.id} variants={itemVariants}>
-              <GlassCard className="!p-6">
+              <GlassCard className="p-6!">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-start space-x-4 flex-1">
-                    <div className="p-3 bg-white/[0.05] rounded-lg border border-white/[0.1] mt-1">
+                    <div className="p-3 bg-white/5 rounded-lg border border-white/10 mt-1">
                       <Icon className="w-5 h-5 text-slate-300" />
                     </div>
                     <div className="flex-1">

@@ -7,7 +7,9 @@
     color: var(--text);
   }
   body {
-    @apply antialiased overflow-x-hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
   }
   /* Custom Scrollbar for a premium feel */
   ::-webkit-scrollbar {
@@ -72,9 +74,16 @@ select:focus-visible,
     box-shadow: 0 6px 20px rgba(0,0,0,0.45);
   }
   .glass-input {
-    @apply text-white placeholder-slate-500 transition-all duration-300 outline-none rounded-xl px-4 py-3;
+    color: #ffffff;
+    transition: all 300ms;
+    outline: none;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.08);
+  }
+  .glass-input::placeholder {
+    color: #64748b;
   }
   /* Modifier: remove inner box for inputs placed inside a decorated wrapper */
   .glass-input--plain {
@@ -85,7 +94,10 @@ select:focus-visible,
     padding-right: 0;
   }
   .text-gradient-cyan {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#00d4ff] to-blue-500;
+    background-image: linear-gradient(to right, #00d4ff, #3b82f6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 }
 /* Subtle animated background orbs */

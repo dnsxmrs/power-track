@@ -134,15 +134,15 @@ export default function DevicesPage() {
               placeholder="Search areas..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="glass-input glass-input--plain !pl-16 pr-3 py-2 text-sm w-full max-w-xs md:!pl-16 md:max-w-none md:w-64 relative z-10"
+              className="glass-input glass-input--plain pl-16! pr-3 py-2 text-sm w-full max-w-xs md:pl-16! md:max-w-none md:w-64 relative z-10"
             />
           </div>
           <button
             onClick={() => setWarningOnly(prev => !prev)}
-            className={`glass-panel !p-2 !rounded-xl transition-colors flex items-center justify-center ${
+            className={`glass-panel p-2! rounded-xl! transition-colors flex items-center justify-center ${
               warningOnly
                 ? 'text-amber-300 bg-amber-500/10 border-amber-500/30'
-                : 'text-slate-300 hover:text-white hover:bg-white/[0.08]'
+                : 'text-slate-300 hover:text-white hover:bg-white/8'
             }`}
             aria-pressed={warningOnly}
             title={warningOnly ? 'Showing warning areas only' : 'Show warning areas only'}
@@ -159,7 +159,7 @@ export default function DevicesPage() {
             <motion.div key={area.id} variants={itemVariants}>
               <GlassCard className="h-full">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 bg-white/[0.05] rounded-xl border border-white/[0.1]">
+                  <div className="p-3 bg-white/5 rounded-xl border border-white/10">
                     <Icon className="w-6 h-6 text-slate-300" />
                   </div>
                   <StatusBadge status={area.status} label="" />

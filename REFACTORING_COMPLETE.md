@@ -6,7 +6,7 @@ Your Power Track application has been successfully refactored from a **component
 
 ### ✨ New Folder Structure
 
-```
+```text
 src/app/
 ├── login/                      # /login route
 │   └── page.tsx
