@@ -58,7 +58,7 @@ async function logRequest(request: NextRequest) {
     const payload = await parsePayload(request);
     const url = new URL(request.url);
 
-    const entry = addRequestLog({
+    const entry = await addRequestLog({
         method: request.method,
         path: url.pathname,
         query: getQuery(url),
@@ -70,7 +70,7 @@ async function logRequest(request: NextRequest) {
 }
 
 export async function GET() {
-    return NextResponse.json({ logs: getRequestLogs() });
+    return NextResponse.json({ logs: await getRequestLogs() });
 }
 
 export async function POST(request: NextRequest) {

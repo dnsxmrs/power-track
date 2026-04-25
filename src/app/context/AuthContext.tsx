@@ -1,62 +1,48 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
-
-const STORAGE_KEY = 'powertrack.isLoggedIn';
+import { createContext, useContext } from 'react';
+import { signIn, signOut, useSession } from '@/lib/auth-client';
 
 type AuthContextType = {
   isLoggedIn: boolean;
   loading: boolean;
-  login: () => Promise<void>;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<{ error: string | null }>;
+  signInWithGoogle: () => Promise<{ error: string | null }>;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { data: session, isPending } = useSession();
+  const isLoggedIn = Boolean(session?.user);
+  const loading = isPending;
 
-  useEffect(() => {
-    // restore auth state from localStorage
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY) === '1';
-      
-      // setIsLoggedIn(stored);
-    } catch (e) {
-      // If reading localStorage fails (e.g., privacy mode), default to logged out
-      // and surface the error for debugging when available.
-      // eslint-disable-next-line no-console
-      console.warn('Auth restore failed', e);
-      // setIsLoggedIn(false);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const login: AuthContextType['login'] = async (email, password) => {
+    const { error } = await signIn.email({
+      email,
+      password,
+      callbackURL: '/dashboard',
+    });
 
-  const login = async () => {
-    // simulate any async work (e.g., token exchange); keep API async-friendly
-    try {
-      localStorage.setItem(STORAGE_KEY, '1');
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.warn('Auth login: unable to persist state', e);
-    }
-    setIsLoggedIn(true);
+    return { error: error?.message ?? null };
   };
 
-  const logout = () => {
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.warn('Auth logout: unable to clear state', e);
-    }
-    setIsLoggedIn(false);
+  const signInWithGoogle: AuthContextType['signInWithGoogle'] = async () => {
+    const { error } = await signIn.social({
+      provider: 'google',
+      callbackURL: '/dashboard',
+    });
+
+    return { error: error?.message ?? null };
+  };
+
+  const logout: AuthContextType['logout'] = async () => {
+    await signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, loading, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, loading, login, signInWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );

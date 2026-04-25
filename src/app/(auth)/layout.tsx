@@ -63,8 +63,8 @@ export default function AuthLayout({
         setMobileSidebarOpen(false);
     };
 
-    const handleLogout = () => {
-        logout();
+    const handleLogout = async () => {
+        await logout();
         router.push('/login');
         setMobileSidebarOpen(false);
     };

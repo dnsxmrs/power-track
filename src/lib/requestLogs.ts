@@ -1,3 +1,6 @@
+import type { Prisma } from '@/generated/prisma/client';
+import { prisma } from '@/lib/prisma';
+
 export type RequestLogEntry = {
     id: string;
     method: string;
@@ -9,24 +12,46 @@ export type RequestLogEntry = {
 };
 
 const MAX_LOGS = 100;
-const requestLogs: RequestLogEntry[] = [];
 
-export function addRequestLog(entry: Omit<RequestLogEntry, 'id' | 'receivedAt'>): RequestLogEntry {
-    const log: RequestLogEntry = {
-        id: crypto.randomUUID(),
-        receivedAt: new Date().toISOString(),
-        ...entry,
-    };
-
-    requestLogs.unshift(log);
-
-    if (requestLogs.length > MAX_LOGS) {
-        requestLogs.length = MAX_LOGS;
-    }
-
-    return log;
+function toInputJson(value: unknown): Prisma.InputJsonValue {
+    return JSON.parse(JSON.stringify(value ?? null)) as Prisma.InputJsonValue;
 }
 
-export function getRequestLogs(): RequestLogEntry[] {
-    return [...requestLogs];
+export async function addRequestLog(entry: Omit<RequestLogEntry, 'id' | 'receivedAt'>): Promise<RequestLogEntry> {
+    const created = await prisma.requestLog.create({
+        data: {
+            method: entry.method,
+            path: entry.path,
+            query: toInputJson(entry.query),
+            headers: toInputJson(entry.headers),
+            payload: toInputJson(entry.payload),
+        },
+    });
+
+    return {
+        id: created.id,
+        method: created.method,
+        path: created.path,
+        query: (created.query ?? {}) as Record<string, string | string[]>,
+        headers: created.headers as Record<string, string>,
+        payload: created.payload,
+        receivedAt: created.createdAt.toISOString(),
+    };
+}
+
+export async function getRequestLogs(): Promise<RequestLogEntry[]> {
+    const logs = await prisma.requestLog.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: MAX_LOGS,
+    });
+
+    return logs.map((log) => ({
+        id: log.id,
+        method: log.method,
+        path: log.path,
+        query: (log.query ?? {}) as Record<string, string | string[]>,
+        headers: log.headers as Record<string, string>,
+        payload: log.payload,
+        receivedAt: log.createdAt.toISOString(),
+    }));
 }

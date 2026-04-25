@@ -16,7 +16,7 @@ export type PageType = 'dashboard' | 'devices' | 'alerts' | 'reports' | 'branche
 interface SidebarProps {
   activePage: PageType;
   onNavigate: (page: PageType) => void;
-  onLogout: () => void;
+  onLogout: () => void | Promise<void>;
   // mobile support
   mobileOpen?: boolean;
   onRequestClose?: () => void;

@@ -9,10 +9,11 @@ import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
     const router = useRouter();
-    const { isLoggedIn, login } = useAuth();
+    const { isLoggedIn, login, signInWithGoogle } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (isLoggedIn) {
@@ -20,15 +21,35 @@ export default function LoginPage() {
         }
     }, [isLoggedIn, router]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError(null);
         setIsLoading(true);
-        // Simulate network request
-        setTimeout(async () => {
-            setIsLoading(false);
-            await login();
+        const result = await login(email, password);
+        setIsLoading(false);
+
+        if (result.error) {
+            setError(result.error);
+            return;
+        }
+
+        router.push('/dashboard');
+    };
+
+    const handleGoogleSignIn = async () => {
+        setError(null);
+        setIsLoading(true);
+        const result = await signInWithGoogle();
+        setIsLoading(false);
+
+        if (result.error) {
+            setError(result.error);
+            return;
+        }
+
+        if (!result.error) {
             router.push('/dashboard');
-        }, 1200);
+        }
     };
 
     return (
@@ -162,6 +183,17 @@ export default function LoginPage() {
                                 </>
                             )}
                         </button>
+
+                        <button
+                            type="button"
+                            onClick={handleGoogleSignIn}
+                            disabled={isLoading}
+                            className="w-full flex items-center justify-center py-3 px-4 rounded-xl text-sm font-semibold text-slate-100 border border-white/20 bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                        >
+                            Continue with Google
+                        </button>
+
+                        {error && <p className="text-sm text-rose-300 text-center">{error}</p>}
                     </form>
                 </GlassCard>
 
