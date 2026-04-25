@@ -4,7 +4,7 @@ Power Track is an appliance-level energy analytics platform built with Next.js. 
 
 ## Status
 
-[![Release](https://img.shields.io/github/actions/workflow/status/YOUR_ORG/power-track/release.yml?branch=master&label=release)](https://github.com/YOUR_ORG/power-track/actions/workflows/release.yml)
+[![Release](https://img.shields.io/github/actions/workflow/status/YOUR_ORG/power-track/release.yml?branch=master&label=release)](https://github.com/dnsxmrs/power-track/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Update the badge URLs with your actual GitHub organization/user and repository name.
