@@ -1,3 +1,15 @@
+# [1.1.0-beta.1](https://github.com/dnsxmrs/power-track/compare/v1.0.1...v1.1.0-beta.1) (2026-04-25)
+
+
+### Bug Fixes
+
+* update apostrophe usage ([6e05569](https://github.com/dnsxmrs/power-track/commit/6e0556931935ec0a5f5fb39d7bf4c3bc6f547d7b))
+
+
+### Features
+
+* implement authentication flow with sign-in and sign-up pages and AuthContext provider ([44805a0](https://github.com/dnsxmrs/power-track/commit/44805a00d776b3590b64e34575f741ffb47487d6))
+
 ## [1.0.1](https://github.com/dnsxmrs/power-track/compare/v1.0.0...v1.0.1) (2026-04-25)
 
 
