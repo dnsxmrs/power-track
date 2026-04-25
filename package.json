@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "prepare": "husky",
+    "release": "semantic-release",
+    "commitlint": "commitlint --edit"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
@@ -21,6 +24,13 @@
     "recharts": "^3.8.1"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.6",
+    "@semantic-release/release-notes-generator": "^14.1.0",
     "@better-auth/cli": "^1.4.21",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20.19.39",
@@ -28,7 +38,9 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "husky": "^9.1.7",
     "prisma": "^7.8.0",
+    "semantic-release": "^24.2.7",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

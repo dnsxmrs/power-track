@@ -49,8 +49,6 @@ facility managers
 multi-branch businesses
 👉 Especially those who want to reduce electricity cost and improve efficiency
 
-
-
 🌍 6. Impact (Very Important for Technopreneurship)
 PowerTrack contributes to:
 💡 Economic Impact

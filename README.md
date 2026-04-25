@@ -34,3 +34,48 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Automatic SemVer Releases
+
+This project now uses Conventional Commits + semantic-release for automatic versioning.
+
+### Commit format
+
+Use commit messages in this format:
+
+```text
+type(scope): short summary
+```
+
+Examples:
+
+```text
+feat(auth): add password reset flow
+fix(api): handle missing request headers
+chore(ci): update release workflow
+```
+
+Version bump rules:
+
+- `fix:` -> patch release (0.1.0 -> 0.1.1)
+- `feat:` -> minor release (0.1.0 -> 0.2.0)
+- breaking change (`!` or `BREAKING CHANGE:`) -> major release (0.1.0 -> 1.0.0)
+
+### Local commit validation
+
+- Husky runs a `commit-msg` hook.
+- Commitlint validates commit messages before commit completes.
+
+If your message is invalid, Git blocks the commit and shows what to fix.
+
+### Release automation
+
+- Workflow file: `.github/workflows/release.yml`
+- Trigger: push to `main`
+- semantic-release will:
+	- analyze commits since last release
+	- calculate the next SemVer version
+	- update `CHANGELOG.md`
+	- update `package.json` and `package-lock.json` version
+	- commit release assets back to `main`
+	- create a GitHub Release and tag
