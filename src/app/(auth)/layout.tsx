@@ -19,7 +19,7 @@ export default function AuthLayout({
     useEffect(() => {
         if (loading) return;
         if (!isLoggedIn) {
-            router.replace('/login');
+            router.replace('/sign-in');
         }
     }, [isLoggedIn, loading, router]);
 
@@ -65,7 +65,7 @@ export default function AuthLayout({
 
     const handleLogout = async () => {
         await logout();
-        router.push('/login');
+        router.push('/sign-in');
         setMobileSidebarOpen(false);
     };
 
