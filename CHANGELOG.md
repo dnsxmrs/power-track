@@ -1,3 +1,10 @@
+# [1.1.0-beta.2](https://github.com/dnsxmrs/power-track/compare/v1.1.0-beta.1...v1.1.0-beta.2) (2026-04-25)
+
+
+### Features
+
+* implement sign-in and sign-up client components with global styling and glassmorphism design ([8fcc6b4](https://github.com/dnsxmrs/power-track/commit/8fcc6b4cafd6100a76ff30a55bc1664940b7c843))
+
 # [1.1.0-beta.1](https://github.com/dnsxmrs/power-track/compare/v1.0.1...v1.1.0-beta.1) (2026-04-25)
 
 
