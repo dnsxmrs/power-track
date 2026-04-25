@@ -4,8 +4,12 @@ Power Track is an appliance-level energy analytics platform built with Next.js. 
 
 ## Status
 
-[![Release](https://img.shields.io/github/actions/workflow/status/YOUR_ORG/power-track/release.yml?branch=master&label=release)](https://github.com/dnsxmrs/power-track/actions/workflows/release.yml)
+[![Release](https://img.shields.io/github/actions/workflow/status/dnsxmrs/power-track/release.yml?branch=master&label=release)](https://github.com/dnsxmrs/power-track/actions/workflows/release.yml)
+[![GitHub release](https://img.shields.io/github/v/release/dnsxmrs/power-track?label=version)](https://github.com/dnsxmrs/power-track/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+
+Current release stage: beta (pre-release)
 
 Update the badge URLs with your actual GitHub organization/user and repository name.
 
@@ -91,6 +95,15 @@ Environment configuration is managed with .env. At minimum, configure database a
 - npm run lint: Run ESLint
 - npm run commitlint: Validate a commit message
 - npm run release: Run semantic-release (CI)
+
+## Releases
+
+This repository publishes beta pre-releases from the beta branch while the product is still under active development.
+
+- Release channel: beta
+- Example versions: 0.1.0-beta.1, 0.1.0-beta.2
+- Prerelease branch: beta
+- Stable releases continue from master when you are ready
 
 ## Deployment
 
