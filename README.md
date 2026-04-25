@@ -1,81 +1,129 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Power Track
+
+Power Track is an appliance-level energy analytics platform built with Next.js. It helps teams monitor energy usage, compare estimated versus actual consumption, and improve operational decisions across devices and branches.
+
+## Status
+
+[![Release](https://img.shields.io/github/actions/workflow/status/YOUR_ORG/power-track/release.yml?branch=main&label=release)](https://github.com/YOUR_ORG/power-track/actions/workflows/release.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+Update the badge URLs with your actual GitHub organization/user and repository name.
+
+## Table of Contents
+
+- Overview
+- Features
+- Tech Stack
+- Project Structure
+- Getting Started
+- Configuration
+- Scripts
+- Releases
+- Deployment
+- Contributing
+- Security
+- License
+
+## Overview
+
+Power Track provides a dashboard for energy visibility and analysis, with authentication-protected routes and branch-aware monitoring views.
+
+## Features
+
+- Real-time monitoring dashboard
+- Appliance and branch-level visibility
+- Estimated versus actual usage tracking
+- Alerts, logs, and reports views
+- Protected application routes and auth flows
+
+## Tech Stack
+
+- Next.js (App Router)
+- React and TypeScript
+- Prisma ORM
+- Better Auth
+- Tailwind CSS
+
+## Project Structure
+
+- src/app: App Router pages, route layouts, API route handlers, UI components
+- src/lib: Auth, Prisma, and shared service utilities
+- prisma: Prisma schema and migrations
+- public: Static assets
+- .github/workflows: CI/CD and release workflows
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 20+
+- npm 10+
+- Database configured for Prisma
+
+### Install and Run
+
+1. Clone the repository.
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Create a .env file and set required environment variables.
+4. Apply database migrations (if applicable).
+5. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+App URL: <http://localhost:3000>
+
+## Configuration
+
+Environment configuration is managed with .env. At minimum, configure database and auth-related values required by Prisma and Better Auth.
+
+## Scripts
+
+- npm run dev: Start development server
+- npm run build: Build production bundle
+- npm run start: Start production server
+- npm run lint: Run ESLint
+- npm run commitlint: Validate a commit message
+- npm run release: Run semantic-release (CI)
+
+## Deployment
+
+- Deploy as a Node.js web app on a platform that supports Next.js (for example Vercel, Azure App Service, Railway, or a container platform).
+
+### Production Build Commands
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm ci
+npm run build
+npm run start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### CI/CD Notes
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Ensure production environment variables are set in your deployment platform.
+- Ensure migrations are applied before app startup in production.
+- Keep main protected and use pull requests for changes.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Contributing
 
-## Learn More
+1. Create a branch from main.
+2. Make focused changes.
+3. Commit with Conventional Commits.
+4. Open a pull request.
+5. After merge to main, automated release runs.
 
-To learn more about Next.js, take a look at the following resources:
+## Security
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Do not commit secrets or .env files.
+- Rotate credentials if exposed.
+- Report vulnerabilities privately to maintainers.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## License
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Automatic SemVer Releases
-
-This project now uses Conventional Commits + semantic-release for automatic versioning.
-
-### Commit format
-
-Use commit messages in this format:
-
-```text
-type(scope): short summary
-```
-
-Examples:
-
-```text
-feat(auth): add password reset flow
-fix(api): handle missing request headers
-chore(ci): update release workflow
-```
-
-Version bump rules:
-
-- `fix:` -> patch release (0.1.0 -> 0.1.1)
-- `feat:` -> minor release (0.1.0 -> 0.2.0)
-- breaking change (`!` or `BREAKING CHANGE:`) -> major release (0.1.0 -> 1.0.0)
-
-### Local commit validation
-
-- Husky runs a `commit-msg` hook.
-- Commitlint validates commit messages before commit completes.
-
-If your message is invalid, Git blocks the commit and shows what to fix.
-
-### Release automation
-
-- Workflow file: `.github/workflows/release.yml`
-- Trigger: push to `main`
-- semantic-release will:
-	- analyze commits since last release
-	- calculate the next SemVer version
-	- update `CHANGELOG.md`
-	- update `package.json` and `package-lock.json` version
-	- commit release assets back to `main`
-	- create a GitHub Release and tag
+This project is licensed under the MIT License. See [LICENSE](LICENSE).
