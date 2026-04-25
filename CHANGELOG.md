@@ -1,3 +1,11 @@
+## [1.0.1](https://github.com/dnsxmrs/power-track/compare/v1.0.0...v1.0.1) (2026-04-25)
+
+
+### Bug Fixes
+
+* update release badge URL in README ([46e6cb6](https://github.com/dnsxmrs/power-track/commit/46e6cb643ec15f68e0f00b1263772c23c40e16ab))
+* update release badges and added beta as a version with one branch ([9dfd87a](https://github.com/dnsxmrs/power-track/commit/9dfd87ab22112a57aab47682be03d565da93c639))
+
 # 1.0.0 (2026-04-25)
 
 
