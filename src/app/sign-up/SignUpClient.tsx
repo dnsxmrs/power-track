@@ -56,7 +56,7 @@ export function SignUpClient() {
                 </div>
 
                 <GlassCard className="p-8 sm:p-10" glowColor="cyan">
-                    <div className="mb-8">
+                    <div className="mb-8 text-center">
                         <h1 className="text-2xl font-semibold text-white mb-2">Create an account</h1>
                         <p className="text-sm text-slate-400">
                             Setup your temporary admin access perfectly.
