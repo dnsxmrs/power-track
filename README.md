@@ -4,7 +4,7 @@ Power Track is an appliance-level energy analytics platform built with Next.js. 
 
 ## Status
 
-[![Release](https://img.shields.io/github/actions/workflow/status/YOUR_ORG/power-track/release.yml?branch=main&label=release)](https://github.com/YOUR_ORG/power-track/actions/workflows/release.yml)
+[![Release](https://img.shields.io/github/actions/workflow/status/YOUR_ORG/power-track/release.yml?branch=master&label=release)](https://github.com/YOUR_ORG/power-track/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Update the badge URLs with your actual GitHub organization/user and repository name.
@@ -108,15 +108,15 @@ npm run start
 
 - Ensure production environment variables are set in your deployment platform.
 - Ensure migrations are applied before app startup in production.
-- Keep main protected and use pull requests for changes.
+- Keep your default release branch protected and use pull requests for changes.
 
 ## Contributing
 
-1. Create a branch from main.
+1. Create a branch from your default release branch.
 2. Make focused changes.
 3. Commit with Conventional Commits.
 4. Open a pull request.
-5. After merge to main, automated release runs.
+5. After merge to the default release branch, automated release runs.
 
 ## Security
 
