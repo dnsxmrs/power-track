@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ZapIcon, MailIcon, LockIcon } from 'lucide-react';
 import { GlassCard } from '../components/GlassCard';
-import { useAuth } from '../context/AuthContext';
+import { authClient } from '@/lib/auth-client';
 
 export function SignInClient() {
     const router = useRouter();
-    const { isLoggedIn, login, signInWithGoogle } = useAuth();
+    const { data: session } = authClient.useSession();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
@@ -17,20 +17,25 @@ export function SignInClient() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (isLoggedIn) {
+        if (session?.user) {
             router.replace('/dashboard');
         }
-    }, [isLoggedIn, router]);
+    }, [session, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setIsLoading(true);
-        const result = await login(email, password, rememberMe);
+        const { error } = await authClient.signIn.email({
+            email,
+            password,
+            rememberMe,
+            callbackURL: '/dashboard',
+        });
         setIsLoading(false);
 
-        if (result.error) {
-            setError(result.error);
+        if (error) {
+            setError(error.message ?? 'Sign in failed.');
             return;
         }
 
@@ -40,16 +45,14 @@ export function SignInClient() {
     const handleGoogleSignIn = async () => {
         setError(null);
         setIsLoading(true);
-        const result = await signInWithGoogle();
+        const { error } = await authClient.signIn.social({
+            provider: 'google',
+            callbackURL: '/dashboard',
+        });
         setIsLoading(false);
 
-        if (result.error) {
-            setError(result.error);
-            return;
-        }
-
-        if (!result.error) {
-            router.push('/dashboard');
+        if (error) {
+            setError(error.message ?? 'Google sign in failed.');
         }
     };
 
@@ -101,7 +104,7 @@ export function SignInClient() {
                             <div className="w-full border-t border-white/10"></div>
                         </div>
                         <div className="relative flex justify-center text-sm">
-                            <span className="px-3 bg-[#0a1128]/80 text-slate-500 backdrop-blur-sm rounded-full">or sign in with email</span>
+                            <span className="px-3 bg-[#0a1128]/80 text-slate-500 backdrop-blur-sm rounded-full">or</span>
                         </div>
                     </div>
 
@@ -157,7 +160,7 @@ export function SignInClient() {
                                     Keep me signed in
                                 </label>
                             </div>
-                            <a href="#" className="text-sm font-medium text-[#00d4ff] hover:text-[#00b8e6] hover:underline transition-all">
+                            <a href="/forgot-password" className="text-sm font-medium text-[#00d4ff] hover:text-[#00b8e6] hover:underline transition-all">
                                 Forgot password?
                             </a>
                         </div>

@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ZapIcon, MailIcon, LockIcon, UserIcon } from 'lucide-react';
 import { GlassCard } from '../components/GlassCard';
-import { useAuth } from '../context/AuthContext';
+import { authClient } from '@/lib/auth-client';
 
 export function SignUpClient() {
     const router = useRouter();
-    const { isLoggedIn, register } = useAuth();
+    const { data: session } = authClient.useSession();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -17,20 +17,25 @@ export function SignUpClient() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (isLoggedIn) {
+        if (session?.user) {
             router.replace('/dashboard');
         }
-    }, [isLoggedIn, router]);
+    }, [session, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setIsLoading(true);
-        const result = await register(name, email, password);
+        const { error } = await authClient.signUp.email({
+            name,
+            email,
+            password,
+            callbackURL: '/dashboard',
+        });
         setIsLoading(false);
 
-        if (result.error) {
-            setError(result.error);
+        if (error) {
+            setError(error.message ?? 'Registration failed.');
             return;
         }
 

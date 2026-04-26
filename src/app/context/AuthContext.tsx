@@ -9,6 +9,9 @@ type AuthContextType = {
   login: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: string | null }>;
   register: (name: string, email: string, password: string) => Promise<{ error: string | null }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
+  forgetPassword: (email: string) => Promise<{ error: string | null }>;
+  verifyOTP: (email: string, otp: string) => Promise<{ error: string | null }>;
+  resetPasswordWithOTP: (email: string, otp: string, password: string) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
 };
 
@@ -50,12 +53,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: error?.message ?? null };
   };
 
+  const forgetPassword: AuthContextType['forgetPassword'] = async (email) => {
+    const { authClient } = await import('@/lib/auth-client');
+    const { error } = await authClient.emailOtp.sendVerificationOtp({
+      email,
+      type: 'forget-password',
+    });
+
+    return { error: error?.message ?? null };
+  };
+
+  const verifyOTP: AuthContextType['verifyOTP'] = async (email, otp) => {
+    const { authClient } = await import('@/lib/auth-client');
+    const { error } = await authClient.emailOtp.checkVerificationOtp({
+      email,
+      otp,
+      type: 'forget-password',
+    });
+
+    return { error: error?.message ?? null };
+  };
+
+  const resetPasswordWithOTP: AuthContextType['resetPasswordWithOTP'] = async (email, otp, password) => {
+    const { authClient } = await import('@/lib/auth-client');
+    const { error } = await authClient.emailOtp.resetPassword({
+      email,
+      otp,
+      password,
+    });
+
+    return { error: error?.message ?? null };
+  };
+
   const logout: AuthContextType['logout'] = async () => {
     await signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, loading, login, register, signInWithGoogle, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, loading, login, register, signInWithGoogle, forgetPassword, verifyOTP, resetPasswordWithOTP, logout }}>
       {children}
     </AuthContext.Provider>
   );
