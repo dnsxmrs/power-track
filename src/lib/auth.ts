@@ -14,8 +14,9 @@ const smtpUser = process.env.SMTP_USER?.trim() ?? '';
 const smtpPass = process.env.SMTP_PASS ?? '';
 const smtpFrom = process.env.SMTP_FROM || '"PowerTrack" <powertracking.services@gmail.com>';
 const parsedSmtpPort = Number(process.env.SMTP_PORT ?? '587');
-const smtpPort = Number.isInteger(parsedSmtpPort) && parsedSmtpPort > 0 ? parsedSmtpPort : null;
-const hasSmtpConfig = Boolean(smtpHost && smtpUser && smtpPass && smtpPort);
+const hasValidSmtpPort = Number.isInteger(parsedSmtpPort) && parsedSmtpPort > 0;
+const smtpPort = hasValidSmtpPort ? parsedSmtpPort : 587;
+const hasSmtpConfig = Boolean(smtpHost && smtpUser && smtpPass && hasValidSmtpPort);
 
 if (!hasSmtpConfig) {
     console.warn('[Better Auth] SMTP is not fully configured; OTP emails will not be sent.');
