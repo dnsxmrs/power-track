@@ -1,9 +1,11 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ClockIcon } from 'lucide-react';
 import { MetricGrid } from './_components/MetricGrid';
 import { GlassCard } from '@/app/components/GlassCard';
+import { getDashboardData } from '../../_actions/dashboard';
 import type { StatusType } from '@/app/types/status';
 
 interface DashboardMetric {
@@ -27,11 +29,39 @@ interface DashboardData {
     latestReadingAt: string | null;
 }
 
-interface DashboardClientProps {
-    data: DashboardData;
-}
+export function DashboardClient() {
+    const [data, setData] = useState<DashboardData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-export function DashboardClient({ data }: DashboardClientProps) {
+    useEffect(() => {
+        const controller = new AbortController();
+
+        async function fetchDashboardData() {
+            try {
+                const dashboardData = await getDashboardData();
+
+                if (!controller.signal.aborted) {
+                    setData(dashboardData);
+                }
+            } catch {
+                if (!controller.signal.aborted) {
+                    setError('Unable to load dashboard telemetry right now.');
+                }
+            } finally {
+                if (!controller.signal.aborted) {
+                    setIsLoading(false);
+                }
+            }
+        }
+
+        void fetchDashboardData();
+
+        return () => {
+            controller.abort();
+        };
+    }, []);
+
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -41,6 +71,27 @@ export function DashboardClient({ data }: DashboardClientProps) {
             },
         },
     };
+
+    if (isLoading) {
+        return (
+            <div className="max-w-7xl mx-auto space-y-6 p-6">
+                <GlassCard>
+                    <p className="text-sm text-slate-400">Fetching dashboard telemetry...</p>
+                </GlassCard>
+            </div>
+        );
+    }
+
+    if (error || !data) {
+        return (
+            <div className="max-w-7xl mx-auto space-y-6 p-6">
+                <GlassCard>
+                    <h2 className="text-base font-semibold text-white">Dashboard unavailable</h2>
+                    <p className="mt-2 text-sm text-slate-400">{error ?? 'No dashboard data available.'}</p>
+                </GlassCard>
+            </div>
+        );
+    }
 
     return (
         <motion.div

@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import { getDashboardData } from '../../_actions/dashboard';
 import { DashboardClient } from './DashboardClient';
 
 export const metadata: Metadata = {
@@ -7,9 +6,6 @@ export const metadata: Metadata = {
     description: 'Monitor your energy consumption and system health in real-time.',
 };
 
-export default async function DashboardPage() {
-    // Fetch data on the server
-    const data = await getDashboardData();
-
-    return <DashboardClient data={data} />;
+export default function DashboardPage() {
+    return <DashboardClient />;
 }

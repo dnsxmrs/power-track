@@ -1,3 +1,5 @@
+'use server';
+
 import { prisma } from '@/lib/prisma';
 import type { StatusType } from '@/app/types/status';
 
