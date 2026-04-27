@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { getDashboardData } from './_actions/getDashboardData';
+import { getDashboardData } from '../../_actions/dashboard';
 import { DashboardClient } from './DashboardClient';
 
 export const metadata: Metadata = {

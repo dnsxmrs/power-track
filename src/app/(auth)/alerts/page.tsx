@@ -7,12 +7,11 @@ import {
   ZapIcon,
   ThermometerIcon,
   WalletIcon,
-  ClockIcon,
-  CheckCircleIcon,
   SearchIcon,
 } from 'lucide-react';
 import { GlassCard } from '../../components/GlassCard';
-import { StatusBadge, StatusType } from '../../components/StatusBadge';
+import { StatusBadge } from '../../components/StatusBadge';
+import type { StatusType } from '../../types/status';
 
 const alertsData = [
   {

@@ -2,7 +2,8 @@
 
 import { motion } from 'framer-motion';
 import { GlassCard } from '@/app/components/GlassCard';
-import { StatusBadge, StatusType } from '@/app/components/StatusBadge';
+import { StatusBadge } from '@/app/components/StatusBadge';
+import type { StatusType } from '@/app/types/status';
 import { ArrowRightIcon } from 'lucide-react';
 
 interface Area {
