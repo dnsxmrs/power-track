@@ -1,3 +1,12 @@
+# [1.1.0-beta.3](https://github.com/dnsxmrs/power-track/compare/v1.1.0-beta.2...v1.1.0-beta.3) (2026-04-27)
+
+
+### Features
+
+* add power-track icon file ([68aa978](https://github.com/dnsxmrs/power-track/commit/68aa97832f30fb02a7cebe810e993a8856c0064f))
+* **auth:** add password reset functionality with OTP verification ([d43fca8](https://github.com/dnsxmrs/power-track/commit/d43fca8e5de0023441f7d331d831428c318b7433))
+* **dashboard:** implement data fetching and loading states in DashboardClient ([b41737e](https://github.com/dnsxmrs/power-track/commit/b41737e1580823a0d1ae9adf495b0ded434c98f6))
+
 # [1.1.0-beta.2](https://github.com/dnsxmrs/power-track/compare/v1.1.0-beta.1...v1.1.0-beta.2) (2026-04-25)
 
 
