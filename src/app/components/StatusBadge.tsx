@@ -1,4 +1,4 @@
-export type StatusType = 'normal' | 'warning' | 'critical' | 'info';
+import type { StatusType } from '@/app/types/status';
 export interface StatusBadgeProps {
   status: StatusType;
   label?: string;

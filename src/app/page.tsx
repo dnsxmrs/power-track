@@ -1,23 +1,8 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { useAuth } from './context/AuthContext';
-
+// The proxy (src/proxy.ts) handles auth-aware redirects.
+// Unauthenticated users → /sign-in, authenticated → /dashboard.
+// This server-side redirect is the fallback for the root path.
 export default function Page() {
-  const router = useRouter();
-  const { isLoggedIn, loading } = useAuth();
-
-  useEffect(() => {
-    if (!loading) {
-      if (isLoggedIn) {
-        router.replace('/dashboard');
-      } else {
-        router.replace('/login');
-      }
-    }
-  }, [isLoggedIn, loading, router]);
-
-  return null;
+  redirect('/sign-in');
 }
-

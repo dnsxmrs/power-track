@@ -66,6 +66,16 @@ select:focus-visible,
   outline: none;
   box-shadow: none;
 }
+
+/* Fix for webkit autofill overriding dark theme */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+    transition: background-color 9999s ease-in-out 0s, box-shadow 9999s ease-in-out 0s, color 9999s ease-in-out 0s;
+    -webkit-text-fill-color: white !important;
+}
+
 @layer utilities {
   .glass-panel {
     background: var(--panel);

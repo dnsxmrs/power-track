@@ -1,3 +1,5 @@
+'use client';
+
 import type React from 'react';
 import { motion } from 'framer-motion';
 export interface GlassCardProps {

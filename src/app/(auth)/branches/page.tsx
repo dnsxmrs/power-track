@@ -7,10 +7,10 @@ import {
   ActivityIcon,
   WalletIcon,
   AlertTriangleIcon,
-  TrendingUpIcon,
 } from 'lucide-react';
 import { GlassCard } from '../../components/GlassCard';
-import { StatusBadge, StatusType } from '../../components/StatusBadge';
+import { StatusBadge } from '../../components/StatusBadge';
+import type { StatusType } from '../../types/status';
 
 const branches = [
   {
