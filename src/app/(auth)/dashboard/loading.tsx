@@ -1,5 +1,4 @@
 import { Skeleton } from '@/app/components/Skeleton';
-import { GlassCard } from '@/app/components/GlassCard';
 
 export default function DashboardLoading() {
     return (
@@ -16,20 +15,20 @@ export default function DashboardLoading() {
             {/* Metrics Grid Skeleton */}
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {[...Array(7)].map((_, i) => (
-                    <GlassCard key={i} className="h-32">
+                    <div key={i} className="glass-panel rounded-2xl p-6 h-32 border border-white/8">
                         <div className="flex justify-between items-start mb-4">
                             <Skeleton className="h-10 w-10 rounded-xl" />
                             <Skeleton className="h-5 w-16" />
                         </div>
                         <Skeleton className="h-8 w-24 mb-2" />
                         <Skeleton className="h-4 w-20" />
-                    </GlassCard>
+                    </div>
                 ))}
             </div>
 
             {/* Middle Section Skeleton */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <GlassCard className="lg:col-span-2 h-96">
+                <div className="glass-panel rounded-2xl p-6 lg:col-span-2 h-96 border border-white/8">
                     <div className="flex justify-between items-center mb-6">
                         <Skeleton className="h-6 w-48" />
                         <div className="flex space-x-4">
@@ -38,8 +37,8 @@ export default function DashboardLoading() {
                         </div>
                     </div>
                     <Skeleton className="h-full w-full" />
-                </GlassCard>
-                <GlassCard className="h-96">
+                </div>
+                <div className="glass-panel rounded-2xl p-6 h-96 border border-white/8">
                     <Skeleton className="h-6 w-32 mb-6" />
                     <div className="flex justify-center py-6 mb-6">
                         <Skeleton className="h-32 w-32 rounded-full" />
@@ -49,7 +48,7 @@ export default function DashboardLoading() {
                         <Skeleton className="h-4 w-full" />
                         <Skeleton className="h-4 w-full" />
                     </div>
-                </GlassCard>
+                </div>
             </div>
         </div>
     );

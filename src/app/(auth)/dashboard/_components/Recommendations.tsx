@@ -2,21 +2,24 @@
 
 import { motion } from 'framer-motion';
 import { GlassCard } from '@/app/components/GlassCard';
-import { 
-    TargetIcon, 
-    LightbulbIcon, 
-    WindIcon, 
-    WrenchIcon 
+import type { LucideIcon } from 'lucide-react';
+import {
+    TargetIcon,
+    LightbulbIcon,
+    WindIcon,
+    WrenchIcon
 } from 'lucide-react';
 
-const ICON_MAP: Record<string, any> = {
+type RecommendationIcon = 'LightbulbIcon' | 'WindIcon' | 'WrenchIcon';
+
+const ICON_MAP: Record<RecommendationIcon, LucideIcon> = {
     LightbulbIcon,
     WindIcon,
     WrenchIcon
 };
 
 interface Recommendation {
-    icon: string;
+    icon: RecommendationIcon;
     title: string;
     desc: string;
     action: string;
@@ -43,7 +46,7 @@ export function Recommendations({ data }: { data: Recommendation[] }) {
 
                 <div className="space-y-3 mt-6">
                     {data.map((rec, idx) => {
-                        const Icon = ICON_MAP[rec.icon] || LightbulbIcon;
+                        const Icon = ICON_MAP[rec.icon];
                         return (
                             <div
                                 key={idx}

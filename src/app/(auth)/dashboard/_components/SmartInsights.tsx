@@ -2,15 +2,18 @@
 
 import { motion } from 'framer-motion';
 import { GlassCard } from '@/app/components/GlassCard';
-import { 
-    SparklesIcon, 
-    LightbulbIcon, 
-    AlertTriangleIcon, 
-    TrendingUpIcon, 
-    ThermometerIcon 
+import type { LucideIcon } from 'lucide-react';
+import {
+    SparklesIcon,
+    LightbulbIcon,
+    AlertTriangleIcon,
+    TrendingUpIcon,
+    ThermometerIcon
 } from 'lucide-react';
 
-const ICON_MAP: Record<string, any> = {
+type InsightIcon = 'LightbulbIcon' | 'AlertTriangleIcon' | 'TrendingUpIcon' | 'ThermometerIcon';
+
+const ICON_MAP: Record<InsightIcon, LucideIcon> = {
     LightbulbIcon,
     AlertTriangleIcon,
     TrendingUpIcon,
@@ -18,7 +21,7 @@ const ICON_MAP: Record<string, any> = {
 };
 
 interface Insight {
-    icon: string;
+    icon: InsightIcon;
     color: 'amber' | 'red' | 'blue';
     text: string;
     time: string;
@@ -45,13 +48,13 @@ export function SmartInsights({ data }: { data: Insight[] }) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                     {data.map((insight, idx) => {
-                        const Icon = ICON_MAP[insight.icon] || LightbulbIcon;
+                        const Icon = ICON_MAP[insight.icon];
                         const colorClasses = {
                             amber: 'text-amber-400 bg-amber-500/10 border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.8)]',
                             red: 'text-red-400 bg-red-500/10 border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.8)]',
                             blue: 'text-blue-400 bg-blue-500/10 border-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.8)]',
                         }[insight.color];
-                        
+
                         const borderClasses = {
                             amber: 'border-l-amber-500',
                             red: 'border-l-red-500',

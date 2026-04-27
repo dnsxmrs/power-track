@@ -6,28 +6,7 @@ import { ClockIcon } from 'lucide-react';
 import { MetricGrid } from './_components/MetricGrid';
 import { GlassCard } from '@/app/components/GlassCard';
 import { getDashboardData } from '../../_actions/dashboard';
-import type { StatusType } from '@/app/types/status';
-
-interface DashboardMetric {
-    title: string;
-    value: string | number;
-    unit?: string;
-    trend: 'up' | 'down' | 'neutral';
-    trendValue: string;
-    status: StatusType;
-    glowColor?: 'cyan' | 'indigo' | 'emerald' | 'amber' | 'red' | 'none';
-}
-
-interface DashboardData {
-    metrics: DashboardMetric[];
-    coverage: {
-        charts: 'NA';
-        insights: 'NA';
-        recommendations: 'NA';
-        branchOverview: 'NA';
-    };
-    latestReadingAt: string | null;
-}
+import type { DashboardData } from '@/app/types/dashboard';
 
 export function DashboardClient() {
     const [data, setData] = useState<DashboardData | null>(null);

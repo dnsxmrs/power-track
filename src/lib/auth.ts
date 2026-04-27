@@ -8,15 +8,36 @@ import { emailOTP } from 'better-auth/plugins';
 import { prisma } from './prisma';
 import nodemailer from 'nodemailer';
 
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-    },
-});
+const isProduction = process.env.NODE_ENV === 'production';
+const smtpHost = process.env.SMTP_HOST?.trim() ?? '';
+const smtpUser = process.env.SMTP_USER?.trim() ?? '';
+const smtpPass = process.env.SMTP_PASS ?? '';
+const smtpFrom = process.env.SMTP_FROM || '"PowerTrack" <powertracking.services@gmail.com>';
+const parsedSmtpPort = Number(process.env.SMTP_PORT ?? '587');
+const smtpPort = Number.isInteger(parsedSmtpPort) && parsedSmtpPort > 0 ? parsedSmtpPort : null;
+const hasSmtpConfig = Boolean(smtpHost && smtpUser && smtpPass && smtpPort);
+
+if (!hasSmtpConfig) {
+    console.warn('[Better Auth] SMTP is not fully configured; OTP emails will not be sent.');
+}
+
+const transporter = hasSmtpConfig
+    ? nodemailer.createTransport({
+        host: smtpHost,
+        port: smtpPort,
+        secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+        auth: {
+            user: smtpUser,
+            pass: smtpPass,
+        },
+    })
+    : null;
+
+function logOtpForNonProduction(email: string, otp: string, type: string) {
+    if (!isProduction) {
+        console.info(`[Better Auth] OTP for ${email} (type: ${type}): ${otp}`);
+    }
+}
 
 const hasGoogleOAuth =
     typeof process.env.GOOGLE_CLIENT_ID === 'string' &&
@@ -58,38 +79,37 @@ export const auth = betterAuth({
         nextCookies(),
         emailOTP({
             async sendVerificationOTP({ email, otp, type }) {
-                if (type === "forget-password") {
+                if (type === 'forget-password') {
                     const user = await prisma.user.findUnique({
                         where: { email },
                     });
-                    
+
                     if (!user) {
                         console.warn(`[Better Auth] Forget password OTP requested for non-existent email: ${email}`);
-                        throw new Error("User Not Found");
+                        return;
                     }
 
-                    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-                        try {
-                            const info = await transporter.sendMail({
-                                from: process.env.SMTP_FROM || '"PowerTrack" <powertracking.services@gmail.com>',
-                                to: email,
-                                subject: 'Reset Your Password',
-                                html: `<p>Your password reset code is: <strong>${otp}</strong></p><p style="color:#888;font-size:13px;">This code expires in <strong>5 minutes</strong>. If you did not request this, you can safely ignore this email.</p>`,
-                            });
-                            
-                            console.info(`[Better Auth] OTP sent via Nodemailer to ${email}. Message ID: ${info.messageId}`);
-                            // We still log the OTP here just in case it doesn't arrive during testing
-                            console.info(`[Better Auth] For testing, your OTP is: ${otp}`);
-                        } catch (error) {
-                            console.error(`[Better Auth] Failed to execute Nodemailer for ${email}:`, error);
-                            console.info(`[Better Auth] Fallback: Password reset OTP for ${email}: ${otp}`);
-                        }
-                    } else {
-                        console.info(`[Better Auth] Nodemailer not fully configured (missing SMTP vars).`);
-                        console.info(`[Better Auth] Password reset OTP for ${email}: ${otp}`);
+                    if (!transporter) {
+                        logOtpForNonProduction(email, otp, type);
+                        return;
+                    }
+
+                    try {
+                        const info = await transporter.sendMail({
+                            from: smtpFrom,
+                            to: email,
+                            subject: 'Reset Your Password',
+                            html: `<p>Your password reset code is: <strong>${otp}</strong></p><p style="color:#888;font-size:13px;">This code expires in <strong>5 minutes</strong>. If you did not request this, you can safely ignore this email.</p>`,
+                        });
+
+                        console.info(`[Better Auth] OTP sent via Nodemailer to ${email}. Message ID: ${info.messageId}`);
+                        logOtpForNonProduction(email, otp, type);
+                    } catch (error) {
+                        console.error(`[Better Auth] Failed to execute Nodemailer for ${email}:`, error);
+                        logOtpForNonProduction(email, otp, type);
                     }
                 } else {
-                     console.info(`[Better Auth] OTP for ${email} (type: ${type}): ${otp}`);
+                    logOtpForNonProduction(email, otp, type);
                 }
             },
 
@@ -98,4 +118,4 @@ export const auth = betterAuth({
     ],
 });
 
-export type Session = typeof auth.$Infer.Session;
+export type Session = typeof auth.$Infer.Session;
