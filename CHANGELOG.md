@@ -1,3 +1,15 @@
+# [1.1.0-beta.4](https://github.com/dnsxmrs/power-track/compare/v1.1.0-beta.3...v1.1.0-beta.4) (2026-04-27)
+
+
+### Bug Fixes
+
+* **auth:** ensure valid SMTP port handling and configuration check ([740eb1a](https://github.com/dnsxmrs/power-track/commit/740eb1a7e0250ac83b8fc1e43818a584ebb23b1e))
+
+
+### Features
+
+* **dashboard:** refactor dashboard components and add type definitions for DashboardData and DashboardMetric ([84fc0ad](https://github.com/dnsxmrs/power-track/commit/84fc0ad39ef60a74d6718f732717d8e1a35b5456))
+
 # [1.1.0-beta.3](https://github.com/dnsxmrs/power-track/compare/v1.1.0-beta.2...v1.1.0-beta.3) (2026-04-27)
 
 
