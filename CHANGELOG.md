@@ -1,3 +1,10 @@
+# [1.1.0-beta.5](https://github.com/dnsxmrs/power-track/compare/v1.1.0-beta.4...v1.1.0-beta.5) (2026-04-29)
+
+
+### Features
+
+* **auth:** implement email existence check and CORS support in check-email route ([f643dd8](https://github.com/dnsxmrs/power-track/commit/f643dd822bd1e1ec68b2d9f47c9152e452bfea81))
+
 # [1.1.0-beta.4](https://github.com/dnsxmrs/power-track/compare/v1.1.0-beta.3...v1.1.0-beta.4) (2026-04-27)
 
 
