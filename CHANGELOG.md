@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/dnsxmrs/power-track/compare/v1.3.0...v1.4.0) (2026-04-29)
+
+
+### Features
+
+* **auth:** integrate Better Auth Expo support and adjust origin handling for mobile clients ([3e39755](https://github.com/dnsxmrs/power-track/commit/3e39755a2cf832ec1f567ee0572c65d8bc04ccc9))
+
 # [1.3.0](https://github.com/dnsxmrs/power-track/compare/v1.2.1...v1.3.0) (2026-04-29)
 
 
