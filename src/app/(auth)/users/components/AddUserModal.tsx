@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Mail, User, Lock, Shield, CheckCircle } from 'lucide-react';
+import { X, Mail, User, Lock, Shield, Phone } from 'lucide-react';
 import { GlassCard } from '../../../components/GlassCard';
 
 interface AddUserModalProps {
@@ -14,8 +14,7 @@ interface AddUserModalProps {
 export interface UserFormData {
   name: string;
   email: string;
-  password: string;
-  confirmPassword: string;
+  phoneNumber: string;
   role: 'admin' | 'manager' | 'viewer';
   twoFactorEnabled: boolean;
 }
@@ -24,8 +23,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
   const [formData, setFormData] = useState<UserFormData>({
     name: '',
     email: '',
-    password: '',
-    confirmPassword: '',
+    phoneNumber: '+63',
     role: 'viewer',
     twoFactorEnabled: false,
   });
@@ -46,14 +44,18 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
       newErrors.email = 'Invalid email format';
     }
 
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+    // Phone number validation (Philippines +63)
+    const phone = (formData.phoneNumber || '').toString().trim();
+    const normalized = phone.replace(/\s+/g, '');
+    if (!normalized) {
+      newErrors.phoneNumber = 'Phone number is required';
+    } else if (!normalized.startsWith('+63')) {
+      newErrors.phoneNumber = 'Phone number must start with +63';
+    } else {
+      const digits = normalized.replace(/\D/g, '');
+      if (digits.length < 11) {
+        newErrors.phoneNumber = 'Enter a valid Philippine phone number (e.g. +639171234567)';
+      }
     }
 
     setErrors(newErrors);
@@ -73,8 +75,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
       setFormData({
         name: '',
         email: '',
-        password: '',
-        confirmPassword: '',
+        phoneNumber: '+63',
         role: 'viewer',
         twoFactorEnabled: false,
       });
@@ -183,48 +184,25 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
                   {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
                 </div>
 
-                {/* Password Field */}
-                <div>
+                {/* Phone Number Field - Full Width */}
+                <div className="col-span-2">
                   <label className="block text-sm font-medium text-slate-300 mb-2">
                     <span className="flex items-center gap-2">
-                      <Lock size={16} className="text-cyan-400" />
-                      Password
+                      <Phone size={16} className="text-cyan-400" />
+                      Phone Number
                     </span>
                   </label>
                   <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
+                    type="tel"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
                     onChange={handleInputChange}
-                    placeholder="••••••••"
+                    placeholder="+63 917 123 4567"
                     className={`w-full px-4 py-2 bg-white/5 border rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all ${
-                      errors.password ? 'border-red-500/50' : 'border-white/10'
+                      errors.phoneNumber ? 'border-red-500/50' : 'border-white/10'
                     }`}
                   />
-                  {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
-                </div>
-
-                {/* Confirm Password Field */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    <span className="flex items-center gap-2">
-                      <CheckCircle size={16} className="text-cyan-400" />
-                      Confirm Password
-                    </span>
-                  </label>
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    placeholder="••••••••"
-                    className={`w-full px-4 py-2 bg-white/5 border rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all ${
-                      errors.confirmPassword ? 'border-red-500/50' : 'border-white/10'
-                    }`}
-                  />
-                  {errors.confirmPassword && (
-                    <p className="text-red-400 text-xs mt-1">{errors.confirmPassword}</p>
-                  )}
+                  {errors.phoneNumber && <p className="text-red-400 text-xs mt-1">{errors.phoneNumber}</p>}
                 </div>
 
                 {/* Role Field */}
