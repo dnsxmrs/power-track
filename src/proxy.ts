@@ -8,8 +8,16 @@ const PROTECTED_ROUTES = ['/dashboard', '/devices', '/alerts', '/reports', '/log
 // Routes that should redirect to dashboard if already logged in
 const AUTH_ROUTES = ['/sign-in', '/sign-up', '/forgot-password'];
 
+// OAuth callback routes (must not be redirected)
+const OAUTH_ROUTES = ['/api/auth/callback'];
+
 export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
+
+    // Skip middleware for OAuth callbacks
+    if (OAUTH_ROUTES.some((route) => pathname.startsWith(route))) {
+        return NextResponse.next();
+    }
 
     const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
     const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
@@ -58,4 +66,4 @@ export const config = {
          */
         '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
     ],
-};
+};

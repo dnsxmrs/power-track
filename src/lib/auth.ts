@@ -46,11 +46,19 @@ const hasGoogleOAuth =
     typeof process.env.GOOGLE_CLIENT_SECRET === 'string' &&
     process.env.GOOGLE_CLIENT_SECRET.length > 0;
 
+const getBaseUrl = () => {
+    if (process.env.NODE_ENV === 'production') {
+        return process.env.BETTER_AUTH_URL || 'https://power-tracking.vercel.app';
+    }
+    return process.env.BETTER_AUTH_URL || 'http://localhost:3000';
+};
+
 export const auth = betterAuth({
     database: prismaAdapter(prisma, {
         provider: 'postgresql',
     }),
-    trustedOrigins: [process.env.BETTER_AUTH_URL ?? 'http://localhost:3000'],
+    baseURL: getBaseUrl(),
+    trustedOrigins: [getBaseUrl()],
     emailAndPassword: {
         enabled: true,
         requireEmailVerification: true,
