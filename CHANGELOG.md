@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/dnsxmrs/power-track/compare/v1.2.1...v1.3.0) (2026-04-29)
+
+
+### Features
+
+* **auth:** add dynamic base URL handling for production and development environments ([7951792](https://github.com/dnsxmrs/power-track/commit/7951792b52dd641f7fe967e92a5d1ec9ecd58ec8))
+
 ## [1.2.1](https://github.com/dnsxmrs/power-track/compare/v1.2.0...v1.2.1) (2026-04-29)
 
 
