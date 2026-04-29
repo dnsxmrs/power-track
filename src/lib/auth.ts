@@ -1,10 +1,8 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { nextCookies } from 'better-auth/next-js';
-import { admin } from 'better-auth/plugins/admin';
-import { bearer } from 'better-auth/plugins/bearer';
-import { twoFactor } from 'better-auth/plugins/two-factor';
-import { emailOTP } from 'better-auth/plugins';
+import { admin, bearer, emailOTP, twoFactor } from 'better-auth/plugins';
+import { expo } from '@better-auth/expo';
 import { prisma } from './prisma';
 import nodemailer from 'nodemailer';
 
@@ -58,7 +56,8 @@ export const auth = betterAuth({
         provider: 'postgresql',
     }),
     baseURL: getBaseUrl(),
-    trustedOrigins: [getBaseUrl()],
+    // Accept requests from the web app and the Expo mobile scheme.
+    trustedOrigins: [getBaseUrl(), 'powertrackmobile://'],
     emailAndPassword: {
         enabled: true,
         requireEmailVerification: true,
@@ -83,6 +82,8 @@ export const auth = betterAuth({
         : {},
     plugins: [
         twoFactor(),
+        // Expo plugin enables the Better Auth Expo integration (mobile clients)
+        expo(),
         admin(),
         bearer(),
         nextCookies(),
