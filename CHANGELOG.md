@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/dnsxmrs/power-track/compare/v1.2.0...v1.2.1) (2026-04-29)
+
+
+### Bug Fixes
+
+* **prisma:** update datasource URL from DIRECT_URL to DATABASE_URL ([6752cce](https://github.com/dnsxmrs/power-track/commit/6752cce13ff1cc4bfe562470e5a5791d3bb71c24))
+
 # [1.2.0](https://github.com/dnsxmrs/power-track/compare/v1.1.0...v1.2.0) (2026-04-29)
 
 
