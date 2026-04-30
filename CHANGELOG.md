@@ -1,3 +1,10 @@
+# [1.7.0-beta.10](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.9...v1.7.0-beta.10) (2026-04-30)
+
+
+### Features
+
+* **users:** add deletedAt field to User model for soft deletion ([6255b9f](https://github.com/dnsxmrs/power-track/commit/6255b9f121cf5693b9a28fe4a2d60d9f0eff9e4e))
+
 # [1.7.0-beta.9](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.8...v1.7.0-beta.9) (2026-04-30)
 
 
