@@ -1,3 +1,10 @@
+# [1.7.0-beta.7](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.6...v1.7.0-beta.7) (2026-04-30)
+
+
+### Features
+
+* **users:** update phone number display to show '(none)' for empty values ([c868988](https://github.com/dnsxmrs/power-track/commit/c868988e7f3f34ccbb8eac028e3300c14f97c7ca))
+
 # [1.7.0-beta.6](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.5...v1.7.0-beta.6) (2026-04-30)
 
 
