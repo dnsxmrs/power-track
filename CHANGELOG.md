@@ -1,3 +1,10 @@
+# [1.7.0-beta.12](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.11...v1.7.0-beta.12) (2026-04-30)
+
+
+### Features
+
+* **users:** implement DeleteUserModal and user deactivation functionality ([fa8983c](https://github.com/dnsxmrs/power-track/commit/fa8983c0fe5148a2dc092670c6030ad1a8f4f8f2))
+
 # [1.7.0-beta.11](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.10...v1.7.0-beta.11) (2026-04-30)
 
 
