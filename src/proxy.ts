@@ -8,23 +8,21 @@ const PROTECTED_ROUTES = ['/dashboard', '/devices', '/alerts', '/reports', '/log
 // Routes that should redirect to dashboard if already logged in
 const AUTH_ROUTES = ['/sign-in', '/sign-up', '/forgot-password'];
 
+// OAuth callback routes (must not be redirected)
+const OAUTH_ROUTES = ['/api/auth/callback'];
+
 export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
+
+    // Skip middleware for OAuth callbacks
+    if (OAUTH_ROUTES.some((route) => pathname.startsWith(route))) {
+        return NextResponse.next();
+    }
 
     const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
     const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
 
-    // Fast pre-check: if there's no session cookie at all, skip the DB call
-    const hasSessionCookie = request.cookies.has('better-auth.session_token');
-
     if (isProtected) {
-        if (!hasSessionCookie) {
-            const signInUrl = new URL('/sign-in', request.url);
-            signInUrl.searchParams.set('callbackUrl', pathname);
-            return NextResponse.redirect(signInUrl);
-        }
-
-        // Verify the session is actually valid
         const session = await auth.api.getSession({ headers: request.headers });
 
         if (!session) {
@@ -36,8 +34,7 @@ export async function proxy(request: NextRequest) {
         return NextResponse.next();
     }
 
-    if (isAuthRoute && hasSessionCookie) {
-        // Verify it's a real session before bouncing them away
+    if (isAuthRoute) {
         const session = await auth.api.getSession({ headers: request.headers });
 
         if (session) {
@@ -58,4 +55,4 @@ export const config = {
          */
         '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
     ],
-};
+};
