@@ -11,15 +11,9 @@ export interface CreateAccountInput {
 	name: string;
 	email: string;
 	phoneNumber: string;
-	role: 'admin' | 'manager' | 'viewer';
+	role: 'admin' | 'user';
 	twoFactorEnabled: boolean;
 }
-
-const ROLE_TO_AUTH_ROLE: Record<CreateAccountInput['role'], 'admin' | 'user'> = {
-	admin: 'admin',
-	manager: 'user',
-	viewer: 'user',
-};
 
 function generateTemporaryPassword(length = 14): string {
 	const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*';
@@ -65,7 +59,7 @@ export async function createUserAccount(input: CreateAccountInput): Promise<{ us
 		body: {
 			name,
 			email,
-			role: ROLE_TO_AUTH_ROLE[input.role],
+			role: input.role,
 			data: {
 				phoneNumber,
 				twoFactorEnabled: input.twoFactorEnabled,
