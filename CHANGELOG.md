@@ -1,3 +1,10 @@
+# [1.7.0-beta.5](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.4...v1.7.0-beta.5) (2026-04-30)
+
+
+### Features
+
+* **users:** update createUserAccount to set phoneNumber and twoFactorEnabled ([0f5ce5b](https://github.com/dnsxmrs/power-track/commit/0f5ce5bafeefb8155831bf31d5bfbc4d3144af29))
+
 # [1.7.0-beta.4](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.3...v1.7.0-beta.4) (2026-04-30)
 
 
