@@ -44,6 +44,15 @@ function formatFriendlyDate(dateString: string): string {
   }).format(new Date(dateString));
 }
 
+function formatPhoneDisplay(phoneNumber: string | null | undefined): string {
+  if (!phoneNumber) return '+63';
+  const digits = phoneNumber.replace(/\D/g, '').slice(-10);
+  if (digits.length === 0) return '+63';
+  if (digits.length <= 3) return `+63 ${digits}`;
+  if (digits.length <= 6) return `+63 ${digits.slice(0, 3)} ${digits.slice(3)}`;
+  return `+63 ${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
+}
+
 export default function UsersPage() {
   const [users, setUsers] = useState<UserManagementItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -355,7 +364,7 @@ export default function UsersPage() {
                             <PhoneIcon size={18} className="text-cyan-400 mt-0.5" />
                             <div>
                               <p className="text-xs text-slate-500 mb-0.5">Phone</p>
-                              <p className="text-sm text-slate-300">{user.phoneNumber}</p>
+                              <p className="text-sm text-slate-300">{formatPhoneDisplay(user.phoneNumber)}</p>
                             </div>
                           </div>
 
