@@ -1,3 +1,10 @@
+# [1.7.0-beta.8](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.7...v1.7.0-beta.8) (2026-04-30)
+
+
+### Features
+
+* **users:** implement EditUserModal for user editing functionality ([9a437b5](https://github.com/dnsxmrs/power-track/commit/9a437b5096d0667fbff863f4497303afc54e396d))
+
 # [1.7.0-beta.7](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.6...v1.7.0-beta.7) (2026-04-30)
 
 
