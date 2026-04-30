@@ -1,3 +1,15 @@
+# [1.5.0](https://github.com/dnsxmrs/power-track/compare/v1.4.0...v1.5.0) (2026-04-30)
+
+
+### Features
+
+* add user management functionality with AddUserModal and user list page ([008aff1](https://github.com/dnsxmrs/power-track/commit/008aff1f154f1f4ee8c2c4777fd9cda9c0f1188f))
+* **AddUserModal:** enhance layout and styling for user form with responsive design ([f8d7648](https://github.com/dnsxmrs/power-track/commit/f8d7648b11f249e94fbed14fafc5ef15faf431e2))
+* **AddUserModal:** replace password fields with phone number input and validation ([a3c6677](https://github.com/dnsxmrs/power-track/commit/a3c667770b1c3b01bf4e829d693527a4cec18f52))
+* remove backup files for AddUserModal and UsersPage components ([138066e](https://github.com/dnsxmrs/power-track/commit/138066e10e8937d04ae1037e32c749377809b7c7))
+* **user:** add phoneNumber field to User model ([a0af8b7](https://github.com/dnsxmrs/power-track/commit/a0af8b71c4868724e94208d1a88ff59f93c46427))
+* **user:** implement user account creation and email notification ([a43add4](https://github.com/dnsxmrs/power-track/commit/a43add421eeecb894235f1f7a0f38f1ff6630c89))
+
 # [1.4.0](https://github.com/dnsxmrs/power-track/compare/v1.3.0...v1.4.0) (2026-04-29)
 
 
