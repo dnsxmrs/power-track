@@ -205,6 +205,15 @@ export async function createUserAccount(input: CreateAccountInput): Promise<{ us
 		},
 	});
 
+	// Explicitly update user with phoneNumber and twoFactorEnabled
+	await prisma.user.update({
+		where: { id: created.user.id },
+		data: {
+			phoneNumber,
+			twoFactorEnabled: input.twoFactorEnabled,
+		},
+	});
+
 	await prisma.account.create({
 		data: {
 			id: randomUUID(),
