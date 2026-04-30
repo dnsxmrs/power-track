@@ -21,7 +21,8 @@ import {
 import { GlassCard } from '../../components/GlassCard';
 import { StatusBadge } from '../../components/StatusBadge';
 import { AddUserModal, type UserFormData } from './components/AddUserModal';
-import { createUserAccount, fetchUsersForManagement, type UserManagementItem } from '../../_actions/users';
+import { EditUserModal, type EditUserData } from './components/EditUserModal';
+import { createUserAccount, fetchUsersForManagement, updateUserAccount, type UserManagementItem } from '../../_actions/users';
 
 const roleColors = {
   admin: { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/30' },
@@ -60,6 +61,8 @@ export default function UsersPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
+  const [selectedUserForEdit, setSelectedUserForEdit] = useState<UserManagementItem | null>(null);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -129,6 +132,21 @@ export default function UsersPage() {
       type: 'success',
     });
     void refreshUsers();
+  };
+
+  const handleEditUser = (user: UserManagementItem) => {
+    setSelectedUserForEdit(user);
+    setIsEditUserModalOpen(true);
+  };
+
+  const handleSaveUserChanges = async (userId: string, updates: EditUserData) => {
+    await updateUserAccount(userId, updates);
+    setNotification({
+      message: `User updated successfully.`,
+      type: 'success',
+    });
+    void refreshUsers();
+    setIsEditUserModalOpen(false);
   };
 
   return (
@@ -302,11 +320,10 @@ export default function UsersPage() {
                 <motion.div
                   key={user.id}
                   variants={itemVariants}
-                  onClick={() => setExpandedUser(isExpanded ? null : user.id)}
                   className="cursor-pointer"
                 >
                   <GlassCard glowColor={user.status === 'normal' ? 'cyan' : 'red'} hover className="p-5">
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center justify-between gap-4" onClick={() => setExpandedUser(isExpanded ? null : user.id)}>
                       <div className="flex items-center gap-4 flex-1 min-w-0">
                         <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-cyan-500/30 to-indigo-500/30 flex items-center justify-center border border-cyan-500/30 shrink-0">
                           <span className="text-lg font-bold text-cyan-400">
@@ -403,8 +420,9 @@ export default function UsersPage() {
                           </div>
                         </div>
 
-                        <div className="flex gap-2 mt-4 pt-4 border-t border-white/10">
+                        <div className="flex gap-2 mt-4 pt-4 border-t border-white/10" onClick={e => e.stopPropagation()}>
                           <motion.button
+                            onClick={() => handleEditUser(user)}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             className="flex-1 px-3 py-2 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-400 border border-indigo-500/30 rounded-lg transition-all flex items-center justify-center gap-2 text-sm font-medium"
@@ -438,6 +456,16 @@ export default function UsersPage() {
           isOpen={isAddUserModalOpen}
           onClose={() => setIsAddUserModalOpen(false)}
           onSubmit={handleAddUser}
+        />
+
+        <EditUserModal
+          isOpen={isEditUserModalOpen}
+          user={selectedUserForEdit}
+          onClose={() => {
+            setIsEditUserModalOpen(false);
+            setSelectedUserForEdit(null);
+          }}
+          onSubmit={handleSaveUserChanges}
         />
       </motion.div>
     </>

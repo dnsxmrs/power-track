@@ -228,3 +228,57 @@ export async function createUserAccount(input: CreateAccountInput): Promise<{ us
 
 	return { userId: created.user.id };
 }
+
+export interface UpdateAccountInput {
+	name: string;
+	phoneNumber: string;
+	role: 'admin' | 'user';
+	twoFactorEnabled: boolean;
+}
+
+export async function updateUserAccount(userId: string, updates: UpdateAccountInput): Promise<{ success: boolean }> {
+	const requestHeaders = await headers();
+	const session = await auth.api.getSession({ headers: requestHeaders });
+
+	if (!session?.user) {
+		throw new Error('Unauthorized');
+	}
+
+	const name = updates.name.trim();
+	const phoneNumber = updates.phoneNumber.trim();
+
+	// Validate name: 2-50 chars, letters/spaces/hyphens/apostrophes only
+	if (!name) {
+		throw new Error('Name is required');
+	}
+	if (name.length < 2) {
+		throw new Error('Name must be at least 2 characters');
+	}
+	if (name.length > 50) {
+		throw new Error('Name must not exceed 50 characters');
+	}
+	if (!/^[a-zA-Z\s\-']+$/.test(name)) {
+		throw new Error('Name can only contain letters, spaces, hyphens, and apostrophes');
+	}
+
+	// Validate phone: basic check for +63 prefix
+	if (!phoneNumber) {
+		throw new Error('Phone number is required');
+	}
+	if (!phoneNumber.startsWith('+63')) {
+		throw new Error('Phone number must start with +63');
+	}
+
+	// Update user in database
+	await prisma.user.update({
+		where: { id: userId },
+		data: {
+			name,
+			phoneNumber,
+			role: updates.role,
+			twoFactorEnabled: updates.twoFactorEnabled,
+		},
+	});
+
+	return { success: true };
+}
