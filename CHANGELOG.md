@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/dnsxmrs/power-track/compare/v1.5.0...v1.6.0) (2026-04-30)
+
+
+### Features
+
+* **user:** standardize user roles to 'admin' and 'user' in AddUserModal and user creation ([dfb9dc0](https://github.com/dnsxmrs/power-track/commit/dfb9dc0ec74d4214daca71d0485df7c777a50718))
+
 # [1.5.0](https://github.com/dnsxmrs/power-track/compare/v1.4.0...v1.5.0) (2026-04-30)
 
 
