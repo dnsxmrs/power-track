@@ -21,6 +21,7 @@ model User {
   emailVerified    Boolean     @default(false)
   image            String?
   phoneNumber      String?
+  deletedAt        DateTime?
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
   twoFactorEnabled Boolean?    @default(false)
