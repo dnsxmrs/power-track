@@ -22,7 +22,8 @@ import { GlassCard } from '../../components/GlassCard';
 import { StatusBadge } from '../../components/StatusBadge';
 import { AddUserModal, type UserFormData } from './components/AddUserModal';
 import { EditUserModal, type EditUserData } from './components/EditUserModal';
-import { createUserAccount, fetchUsersForManagement, updateUserAccount, type UserManagementItem } from '../../_actions/users';
+import { DeleteUserModal } from './components/DeleteUserModal';
+import { createUserAccount, deleteUserAccount, fetchUsersForManagement, updateUserAccount, type UserManagementItem } from '../../_actions/users';
 
 const roleColors = {
   admin: { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/30' },
@@ -63,7 +64,10 @@ export default function UsersPage() {
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
   const [selectedUserForEdit, setSelectedUserForEdit] = useState<UserManagementItem | null>(null);
+  const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
+  const [selectedUserForDelete, setSelectedUserForDelete] = useState<UserManagementItem | null>(null);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -139,6 +143,11 @@ export default function UsersPage() {
     setIsEditUserModalOpen(true);
   };
 
+  const handleDeleteUser = (user: UserManagementItem) => {
+    setSelectedUserForDelete(user);
+    setIsDeleteUserModalOpen(true);
+  };
+
   const handleSaveUserChanges = async (userId: string, updates: EditUserData) => {
     await updateUserAccount(userId, updates);
     setNotification({
@@ -147,6 +156,22 @@ export default function UsersPage() {
     });
     void refreshUsers();
     setIsEditUserModalOpen(false);
+  };
+
+  const handleConfirmDeleteUser = async (userId: string) => {
+    try {
+      setIsDeletingUser(true);
+      await deleteUserAccount(userId);
+      setNotification({
+        message: 'User deactivated successfully.',
+        type: 'success',
+      });
+      await refreshUsers();
+      setIsDeleteUserModalOpen(false);
+      setSelectedUserForDelete(null);
+    } finally {
+      setIsDeletingUser(false);
+    }
   };
 
   return (
@@ -431,6 +456,7 @@ export default function UsersPage() {
                             Edit
                           </motion.button>
                           <motion.button
+                            onClick={() => handleDeleteUser(user)}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             className="flex-1 px-3 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-lg transition-all flex items-center justify-center gap-2 text-sm font-medium"
@@ -466,6 +492,17 @@ export default function UsersPage() {
             setSelectedUserForEdit(null);
           }}
           onSubmit={handleSaveUserChanges}
+        />
+
+        <DeleteUserModal
+          isOpen={isDeleteUserModalOpen}
+          user={selectedUserForDelete}
+          isLoading={isDeletingUser}
+          onClose={() => {
+            setIsDeleteUserModalOpen(false);
+            setSelectedUserForDelete(null);
+          }}
+          onConfirm={handleConfirmDeleteUser}
         />
       </motion.div>
     </>

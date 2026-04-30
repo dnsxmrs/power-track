@@ -91,6 +91,9 @@ export async function fetchUsersForManagement(): Promise<UserManagementItem[]> {
 	}
 
 	const users = await prisma.user.findMany({
+		where: {
+			deletedAt: null,
+		},
 		select: {
 			id: true,
 			name: true,
@@ -279,6 +282,31 @@ export async function updateUserAccount(userId: string, updates: UpdateAccountIn
 			twoFactorEnabled: updates.twoFactorEnabled,
 		},
 	});
+
+	return { success: true };
+}
+
+export async function deleteUserAccount(userId: string): Promise<{ success: boolean }> {
+	const requestHeaders = await headers();
+	const session = await auth.api.getSession({ headers: requestHeaders });
+
+	if (!session?.user) {
+		throw new Error('Unauthorized');
+	}
+
+	const result = await prisma.user.updateMany({
+		where: {
+			id: userId,
+			deletedAt: null,
+		},
+		data: {
+			deletedAt: new Date(),
+		},
+	});
+
+	if (result.count === 0) {
+		throw new Error('User not found or already deleted');
+	}
 
 	return { success: true };
 }
