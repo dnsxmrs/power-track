@@ -1,3 +1,10 @@
+# [1.7.0-beta.2](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.1...v1.7.0-beta.2) (2026-04-30)
+
+
+### Features
+
+* **validation:** enhance user input validation for name, email, and phone number in AddUserModal and createUserAccount ([ff459c3](https://github.com/dnsxmrs/power-track/commit/ff459c338aea0252da39dca9c3fa9a3cdb489d12))
+
 # [1.7.0-beta.1](https://github.com/dnsxmrs/power-track/compare/v1.6.0...v1.7.0-beta.1) (2026-04-30)
 
 
