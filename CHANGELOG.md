@@ -1,3 +1,10 @@
+# [1.7.0-beta.6](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.5...v1.7.0-beta.6) (2026-04-30)
+
+
+### Features
+
+* **users:** enhance phone number display formatting in UsersPage ([69e9624](https://github.com/dnsxmrs/power-track/commit/69e9624ad98b893661c721967e4cd5fd58d86446))
+
 # [1.7.0-beta.5](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.4...v1.7.0-beta.5) (2026-04-30)
 
 
