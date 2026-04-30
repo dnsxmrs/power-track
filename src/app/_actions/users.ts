@@ -39,16 +39,47 @@ export async function createUserAccount(input: CreateAccountInput): Promise<{ us
 	const email = input.email.trim().toLowerCase();
 	const phoneNumber = input.phoneNumber.trim();
 
+	// Validate name: 2-50 chars, letters/spaces/hyphens/apostrophes only
 	if (!name) {
 		throw new Error('Name is required');
 	}
-
-	if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-		throw new Error('A valid email is required');
+	if (name.length < 2) {
+		throw new Error('Name must be at least 2 characters');
+	}
+	if (name.length > 50) {
+		throw new Error('Name must not exceed 50 characters');
+	}
+	if (!/^[a-zA-Z\s\-']+$/.test(name)) {
+		throw new Error('Name can only contain letters, spaces, hyphens, and apostrophes');
 	}
 
+	// Validate email: valid format, no spaces, max 100 chars
+	if (!email) {
+		throw new Error('Email is required');
+	}
+	if (email.length > 100) {
+		throw new Error('Email must not exceed 100 characters');
+	}
+	if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+		throw new Error('A valid email is required (e.g. user@company.com)');
+	}
+	if (email.includes(' ')) {
+		throw new Error('Email cannot contain spaces');
+	}
+
+	// Validate phone: +63 prefix + exactly 10 digits, starts with 9
 	if (!phoneNumber) {
 		throw new Error('Phone number is required');
+	}
+	const phoneDigits = phoneNumber.replace(/\D/g, '');
+	if (phoneDigits.length !== 10) {
+		throw new Error('Phone number must be exactly 10 digits');
+	}
+	if (!phoneNumber.startsWith('+63')) {
+		throw new Error('Phone number must start with +63');
+	}
+	if (!phoneDigits.startsWith('9')) {
+		throw new Error('Philippine mobile numbers start with 9');
 	}
 
 	const password = generateTemporaryPassword();
