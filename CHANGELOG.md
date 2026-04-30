@@ -1,3 +1,10 @@
+# [1.7.0-beta.9](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.8...v1.7.0-beta.9) (2026-04-30)
+
+
+### Features
+
+* **users:** enhance EditUserModal to initialize form data and phone digits on open ([f8f85ab](https://github.com/dnsxmrs/power-track/commit/f8f85ab23d3e81798558ae236569573792ab2b0f))
+
 # [1.7.0-beta.8](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.7...v1.7.0-beta.8) (2026-04-30)
 
 
