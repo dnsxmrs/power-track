@@ -1,3 +1,10 @@
+# [1.7.0-beta.1](https://github.com/dnsxmrs/power-track/compare/v1.6.0...v1.7.0-beta.1) (2026-04-30)
+
+
+### Features
+
+* **notification:** add user creation success/error notifications ([095b063](https://github.com/dnsxmrs/power-track/commit/095b0634bda97736800f3f0f2b2cdc106e41a159))
+
 # [1.6.0](https://github.com/dnsxmrs/power-track/compare/v1.5.0...v1.6.0) (2026-04-30)
 
 
