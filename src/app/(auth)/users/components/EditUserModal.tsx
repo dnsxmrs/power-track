@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Mail, User, Shield, Phone, CheckCircle, AlertCircle, Lock, Trash2 } from 'lucide-react';
 import { GlassCard } from '../../../components/GlassCard';
@@ -39,6 +39,25 @@ export function EditUserModal({ isOpen, user, onClose, onSubmit }: EditUserModal
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || !user) {
+      return;
+    }
+
+    const digits = user.phoneNumber ? user.phoneNumber.replace(/\D/g, '').slice(-10) : '';
+
+    setActiveTab('basic');
+    setFormData({
+      name: user.name,
+      phoneNumber: digits ? `+63${digits}` : '',
+      role: user.role,
+      twoFactorEnabled: user.twoFactorEnabled,
+    });
+    setPhoneDigits(digits);
+    setErrors({});
+    setShowDeleteConfirm(false);
+  }, [isOpen, user]);
 
   const validateName = (name: string): { valid: boolean; error?: string } => {
     const trimmed = name.trim();
