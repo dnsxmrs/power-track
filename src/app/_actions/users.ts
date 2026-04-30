@@ -127,7 +127,7 @@ export async function fetchUsersForManagement(): Promise<UserManagementItem[]> {
 			id: user.id,
 			name: user.name,
 			email: user.email,
-			phoneNumber: user.phoneNumber || '+63',
+			phoneNumber: user.phoneNumber || '',
 			role: normalizeRole(user.role),
 			twoFactorEnabled: Boolean(user.twoFactorEnabled),
 			emailVerified: Boolean(user.emailVerified),
