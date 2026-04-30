@@ -20,6 +20,7 @@ import { GlassCard } from '../../components/GlassCard';
 import { StatusBadge } from '../../components/StatusBadge';
 import { AddUserModal, type UserFormData } from './components/AddUserModal';
 import type { StatusType } from '../../types/status';
+import { createUserAccount } from '../../_actions/users';
 
 const usersData = [
   {
@@ -141,11 +142,8 @@ export default function UsersPage() {
   };
 
   const handleAddUser = async (userData: UserFormData) => {
-    // TODO: Implement API call to create user
-    console.log('Creating user:', userData);
-    // Example: await fetch('/api/users', { method: 'POST', body: JSON.stringify(userData) })
-    // For now, just log and show success
-    alert(`User ${userData.name} would be created with role ${userData.role}`);
+    await createUserAccount(userData);
+    alert(`User ${userData.name} created successfully. Credentials were emailed to ${userData.email}.`);
   };
 
   return (
