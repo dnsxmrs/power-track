@@ -195,7 +195,14 @@ export async function createUserAccount(input: CreateAccountInput): Promise<{ us
 	const password = generateTemporaryPassword();
 	const hashedPassword = await hashPassword(password);
 
-	const created = await auth.api.createUser({
+		// If a user with this email exists but is soft-deleted, signal the caller
+		const existing = await prisma.user.findUnique({ where: { email } });
+		if (existing && existing.deletedAt) {
+				// Signal the client that this account exists but is deactivated
+				throw new Error(`REACTIVATE:${existing.id}`);
+		}
+
+		const created = await auth.api.createUser({
 		headers: requestHeaders,
 		body: {
 			name,
@@ -230,6 +237,70 @@ export async function createUserAccount(input: CreateAccountInput): Promise<{ us
 	await sendAccountEmail(email, name, email, password);
 
 	return { userId: created.user.id };
+}
+
+export async function reactivateUserAccount(userId: string, input: CreateAccountInput): Promise<{ userId: string; tempPassword: string }> {
+	const requestHeaders = await headers();
+	const session = await auth.api.getSession({ headers: requestHeaders });
+
+	if (!session?.user) {
+		throw new Error('Unauthorized');
+	}
+
+	const name = input.name.trim();
+	const email = input.email.trim().toLowerCase();
+	const phoneNumber = input.phoneNumber.trim();
+
+	// Basic validations (same rules as create)
+	if (!name) throw new Error('Name is required');
+	if (name.length < 2) throw new Error('Name must be at least 2 characters');
+	if (name.length > 50) throw new Error('Name must not exceed 50 characters');
+	if (!/^[a-zA-Z\s\-']+$/.test(name)) throw new Error('Name can only contain letters, spaces, hyphens, and apostrophes');
+
+	if (!email) throw new Error('Email is required');
+	if (email.length > 100) throw new Error('Email must not exceed 100 characters');
+	if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('A valid email is required (e.g. user@company.com)');
+	if (email.includes(' ')) throw new Error('Email cannot contain spaces');
+
+	if (!phoneNumber) throw new Error('Phone number is required');
+	if (!phoneNumber.startsWith('+63')) throw new Error('Phone number must start with +63');
+
+	// Restore user record and update fields
+	await prisma.user.update({
+		where: { id: userId },
+		data: {
+			name,
+			email,
+			phoneNumber,
+			role: input.role,
+			twoFactorEnabled: input.twoFactorEnabled,
+			deletedAt: null,
+		},
+	});
+
+	// Generate a new temporary password and persist it to the credentials account
+	const tempPassword = generateTemporaryPassword();
+	const hashedPassword = await hashPassword(tempPassword);
+
+	const existingAccount = await prisma.account.findFirst({ where: { userId, providerId: 'credential' } });
+	if (existingAccount) {
+		await prisma.account.update({ where: { id: existingAccount.id }, data: { password: hashedPassword } });
+	} else {
+		await prisma.account.create({
+			data: {
+				id: randomUUID(),
+				accountId: userId,
+				providerId: 'credential',
+				userId,
+				password: hashedPassword,
+			},
+		});
+	}
+
+	// Send new credentials email
+	await sendAccountEmail(email, name, email, tempPassword);
+
+	return { userId, tempPassword };
 }
 
 export interface UpdateAccountInput {
