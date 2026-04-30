@@ -181,19 +181,12 @@ export async function createUserAccount(input: CreateAccountInput): Promise<{ us
 		throw new Error('Email cannot contain spaces');
 	}
 
-	// Validate phone: +63 prefix + exactly 10 digits, starts with 9
+	// Validate phone: basic check for +63 prefix
 	if (!phoneNumber) {
 		throw new Error('Phone number is required');
 	}
-	const phoneDigits = phoneNumber.replace(/\D/g, '');
-	if (phoneDigits.length !== 10) {
-		throw new Error('Phone number must be exactly 10 digits');
-	}
 	if (!phoneNumber.startsWith('+63')) {
 		throw new Error('Phone number must start with +63');
-	}
-	if (!phoneDigits.startsWith('9')) {
-		throw new Error('Philippine mobile numbers start with 9');
 	}
 
 	const password = generateTemporaryPassword();

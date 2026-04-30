@@ -101,21 +101,18 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
   };
 
   const validatePhone = (digits: string): { valid: boolean; error?: string } => {
-    const cleanedDigits = digits.replace(/\D/g, '');
-    if (!cleanedDigits) {
+    const cleanedDigits = String(digits).replace(/\D/g, '');
+    if (!cleanedDigits || cleanedDigits.length === 0) {
       return { valid: false, error: 'Phone number is required' };
     }
     if (cleanedDigits.length !== 10) {
-      return { valid: false, error: `Enter exactly 10 digits (${cleanedDigits.length}/10)` };
-    }
-    if (!cleanedDigits.startsWith('9')) {
-      return { valid: false, error: 'Philippine mobile numbers start with 9' };
+      return { valid: false, error: `Phone number must be exactly 10 digits (${cleanedDigits.length}/10)` };
     }
     return { valid: true };
   };
 
   const formatPhoneDigits = (input: string): string => {
-    const digits = input.replace(/\D/g, '').slice(0, 10);
+    const digits = String(input).replace(/\D/g, '').slice(0, 10);
     if (digits.length === 0) return '';
     if (digits.length <= 3) return digits;
     if (digits.length <= 6) return `${digits.slice(0, 3)} ${digits.slice(3)}`;
