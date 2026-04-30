@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   SearchIcon,
@@ -109,6 +109,14 @@ export default function UsersPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'normal' | 'warning'>('all');
   const [expandedUser, setExpandedUser] = useState<number | null>(null);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
   const filteredUsers = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -142,18 +150,50 @@ export default function UsersPage() {
   };
 
   const handleAddUser = async (userData: UserFormData) => {
-    await createUserAccount(userData);
-    alert(`User ${userData.name} created successfully. Credentials were emailed to ${userData.email}.`);
+    try {
+      await createUserAccount(userData);
+      setNotification({
+        message: `User ${userData.name} created successfully. Credentials were emailed to ${userData.email}.`,
+        type: 'success',
+      });
+    } catch (error) {
+      setNotification({
+        message: error instanceof Error ? error.message : 'Failed to create user',
+        type: 'error',
+      });
+    }
   };
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="max-w-7xl mx-auto space-y-6 pb-8 p-6"
-    >
-      {/* Header */}
+    <>
+      {/* Notification Toast */}
+      {notification && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-lg border backdrop-blur-sm ${
+            notification.type === 'success'
+              ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
+              : 'bg-red-500/20 border-red-500/30 text-red-400'
+          }`}
+        >
+          {notification.type === 'success' ? (
+            <CheckCircleIcon size={20} />
+          ) : (
+            <XCircleIcon size={20} />
+          )}
+          <span className="text-sm font-medium">{notification.message}</span>
+        </motion.div>
+      )}
+
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="max-w-7xl mx-auto space-y-6 pb-8 p-6"
+      >
+        {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight">User Management</h1>
@@ -406,12 +446,13 @@ export default function UsersPage() {
         Showing {filteredUsers.length} of {usersData.length} users
       </motion.div>
 
-      {/* Add User Modal */}
-      <AddUserModal
-        isOpen={isAddUserModalOpen}
-        onClose={() => setIsAddUserModalOpen(false)}
-        onSubmit={handleAddUser}
-      />
-    </motion.div>
+        {/* Add User Modal */}
+        <AddUserModal
+          isOpen={isAddUserModalOpen}
+          onClose={() => setIsAddUserModalOpen(false)}
+          onSubmit={handleAddUser}
+        />
+      </motion.div>
+    </>
   );
 }
