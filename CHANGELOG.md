@@ -1,3 +1,10 @@
+# [1.7.0-beta.3](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.2...v1.7.0-beta.3) (2026-04-30)
+
+
+### Features
+
+* **users:** enhance user management with improved data handling and new user attributes ([97f6580](https://github.com/dnsxmrs/power-track/commit/97f6580a523c3397697fb788a6cbddb303bdc056))
+
 # [1.7.0-beta.2](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.1...v1.7.0-beta.2) (2026-04-30)
 
 
