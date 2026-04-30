@@ -15,6 +15,22 @@ export interface CreateAccountInput {
 	twoFactorEnabled: boolean;
 }
 
+export interface UserManagementItem {
+	id: string;
+	name: string;
+	email: string;
+	phoneNumber: string;
+	role: 'admin' | 'user';
+	twoFactorEnabled: boolean;
+	emailVerified: boolean;
+	banned: boolean;
+	status: 'normal' | 'warning';
+	joinedAt: string;
+	lastActiveAt: string;
+	joinedLabel: string;
+	lastActiveLabel: string;
+}
+
 function generateTemporaryPassword(length = 14): string {
 	const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*';
 	const bytes = randomBytes(length);
@@ -25,6 +41,104 @@ function generateTemporaryPassword(length = 14): string {
 	}
 
 	return password;
+}
+
+function normalizeRole(role: string | null | undefined): 'admin' | 'user' {
+	return role === 'admin' ? 'admin' : 'user';
+}
+
+function formatRelativeTime(date: Date): string {
+	const elapsedMilliseconds = Date.now() - date.getTime();
+	const elapsedSeconds = Math.max(0, Math.floor(elapsedMilliseconds / 1000));
+
+	if (elapsedSeconds < 60) {
+		return 'just now';
+	}
+
+	if (elapsedSeconds < 3600) {
+		const minutes = Math.floor(elapsedSeconds / 60);
+		return `${minutes} min ago`;
+	}
+
+	if (elapsedSeconds < 86_400) {
+		const hours = Math.floor(elapsedSeconds / 3600);
+		return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+	}
+
+	if (elapsedSeconds < 604_800) {
+		const days = Math.floor(elapsedSeconds / 86_400);
+		return `${days} day${days === 1 ? '' : 's'} ago`;
+	}
+
+	const weeks = Math.floor(elapsedSeconds / 604_800);
+	return `${weeks} week${weeks === 1 ? '' : 's'} ago`;
+}
+
+function formatDateLabel(date: Date): string {
+	return new Intl.DateTimeFormat('en-US', {
+		month: 'short',
+		day: 'numeric',
+		year: 'numeric',
+	}).format(date);
+}
+
+export async function fetchUsersForManagement(): Promise<UserManagementItem[]> {
+	const requestHeaders = await headers();
+	const session = await auth.api.getSession({ headers: requestHeaders });
+
+	if (!session?.user) {
+		throw new Error('Unauthorized');
+	}
+
+	const users = await prisma.user.findMany({
+		select: {
+			id: true,
+			name: true,
+			email: true,
+			phoneNumber: true,
+			role: true,
+			twoFactorEnabled: true,
+			emailVerified: true,
+			banned: true,
+			createdAt: true,
+			updatedAt: true,
+			sessions: {
+				select: {
+					createdAt: true,
+					updatedAt: true,
+				},
+				orderBy: {
+					updatedAt: 'desc',
+				},
+				take: 1,
+			},
+		},
+		orderBy: {
+			createdAt: 'desc',
+		},
+	});
+
+	return users.map(user => {
+		const latestSession = user.sessions[0];
+		const lastActiveDate = latestSession?.updatedAt ?? latestSession?.createdAt ?? user.updatedAt;
+		const joinedDate = user.createdAt;
+
+		return {
+			id: user.id,
+			name: user.name,
+			email: user.email,
+			phoneNumber: user.phoneNumber || '+63',
+			role: normalizeRole(user.role),
+			twoFactorEnabled: Boolean(user.twoFactorEnabled),
+			emailVerified: Boolean(user.emailVerified),
+			banned: Boolean(user.banned),
+			status: user.banned ? 'warning' : 'normal',
+			joinedAt: joinedDate.toISOString(),
+			lastActiveAt: lastActiveDate.toISOString(),
+			joinedLabel: formatDateLabel(joinedDate),
+			lastActiveLabel: formatRelativeTime(lastActiveDate),
+		};
+	});
 }
 
 export async function createUserAccount(input: CreateAccountInput): Promise<{ userId: string }> {
