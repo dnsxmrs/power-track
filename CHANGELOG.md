@@ -1,3 +1,10 @@
+# [1.7.0-beta.4](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.3...v1.7.0-beta.4) (2026-04-30)
+
+
+### Features
+
+* **validation:** update phone number validation logic in AddUserModal and createUserAccount ([2a07423](https://github.com/dnsxmrs/power-track/commit/2a07423afb8f1d1d04841ec4189088d3ed7c625b))
+
 # [1.7.0-beta.3](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.2...v1.7.0-beta.3) (2026-04-30)
 
 
