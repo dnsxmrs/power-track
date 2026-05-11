@@ -3,11 +3,11 @@
 import { motion } from 'framer-motion';
 import { CheckCircle, RefreshCw, X } from 'lucide-react';
 import { GlassCard } from '../../../components/GlassCard';
-import type { UserManagementItem } from '../../../_actions/users';
+import type { ReactivateCandidate } from '../../../_actions/users';
 
 interface ReactivateUserModalProps {
   isOpen: boolean;
-  user: UserManagementItem | null;
+  user: ReactivateCandidate | null;
   isLoading?: boolean;
   onClose: () => void;
   onConfirm: (userId: string) => Promise<void>;

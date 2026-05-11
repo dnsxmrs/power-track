@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Mail, User, Shield, Phone, CheckCircle, AlertCircle, Lock, Trash2 } from 'lucide-react';
+import { X, Mail, User, Shield, Phone, CheckCircle, AlertCircle, Lock } from 'lucide-react';
 import { GlassCard } from '../../../components/GlassCard';
 import type { UserManagementItem } from '../../../_actions/users';
+import { formatPhoneDigitsForInput, validatePhoneDigits, validateUserName } from '@/lib/userAccountValidation';
 
 interface EditUserModalProps {
   isOpen: boolean;
@@ -38,62 +39,6 @@ export function EditUserModal({ isOpen, user, onClose, onSubmit }: EditUserModal
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
-  useEffect(() => {
-    if (!isOpen || !user) {
-      return;
-    }
-
-    const digits = user.phoneNumber ? user.phoneNumber.replace(/\D/g, '').slice(-10) : '';
-
-    setActiveTab('basic');
-    setFormData({
-      name: user.name,
-      phoneNumber: digits ? `+63${digits}` : '',
-      role: user.role,
-      twoFactorEnabled: user.twoFactorEnabled,
-    });
-    setPhoneDigits(digits);
-    setErrors({});
-    setShowDeleteConfirm(false);
-  }, [isOpen, user]);
-
-  const validateName = (name: string): { valid: boolean; error?: string } => {
-    const trimmed = name.trim();
-    if (!trimmed) {
-      return { valid: false, error: 'Name is required' };
-    }
-    if (trimmed.length < 2) {
-      return { valid: false, error: 'Name must be at least 2 characters' };
-    }
-    if (trimmed.length > 50) {
-      return { valid: false, error: 'Name must not exceed 50 characters' };
-    }
-    if (!/^[a-zA-Z\s\-']+$/.test(trimmed)) {
-      return { valid: false, error: 'Name can only contain letters, spaces, hyphens, and apostrophes' };
-    }
-    return { valid: true };
-  };
-
-  const validatePhone = (digits: string): { valid: boolean; error?: string } => {
-    const cleanedDigits = String(digits).replace(/\D/g, '');
-    if (!cleanedDigits || cleanedDigits.length === 0) {
-      return { valid: false, error: 'Phone number is required' };
-    }
-    if (cleanedDigits.length !== 10) {
-      return { valid: false, error: `Phone number must be exactly 10 digits (${cleanedDigits.length}/10)` };
-    }
-    return { valid: true };
-  };
-
-  const formatPhoneDigits = (input: string): string => {
-    const digits = String(input).replace(/\D/g, '').slice(0, 10);
-    if (digits.length === 0) return '';
-    if (digits.length <= 3) return digits;
-    if (digits.length <= 6) return `${digits.slice(0, 3)} ${digits.slice(3)}`;
-    return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
-  };
 
   const handlePhoneDigitChange = (value: string) => {
     const digits = value.replace(/\D/g, '').slice(0, 10);
@@ -123,10 +68,10 @@ export function EditUserModal({ isOpen, user, onClose, onSubmit }: EditUserModal
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    const nameValidation = validateName(formData.name);
+    const nameValidation = validateUserName(formData.name);
     if (!nameValidation.valid) newErrors.name = nameValidation.error || '';
 
-    const phoneValidation = validatePhone(phoneDigits);
+    const phoneValidation = validatePhoneDigits(phoneDigits);
     if (!phoneValidation.valid) newErrors.phoneNumber = phoneValidation.error || '';
 
     setErrors(newErrors);
@@ -171,7 +116,7 @@ export function EditUserModal({ isOpen, user, onClose, onSubmit }: EditUserModal
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
       >
         <GlassCard glowColor="cyan" className="w-full max-w-2xl max-h-[90vh] flex flex-col">
-          <div className="p-6 flex-shrink-0">
+          <div className="p-6 shrink-0">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-2xl font-bold text-white">Edit User</h2>
@@ -263,7 +208,7 @@ export function EditUserModal({ isOpen, user, onClose, onSubmit }: EditUserModal
                       <input
                         type="tel"
                         inputMode="numeric"
-                        value={formatPhoneDigits(phoneDigits)}
+                        value={formatPhoneDigitsForInput(phoneDigits)}
                         onChange={e => handlePhoneDigitChange(e.target.value)}
                         placeholder="917 123 4567"
                         maxLength={12}
@@ -313,6 +258,8 @@ export function EditUserModal({ isOpen, user, onClose, onSubmit }: EditUserModal
                       <button
                         type="button"
                         onClick={() => setFormData(prev => ({ ...prev, twoFactorEnabled: !prev.twoFactorEnabled }))}
+                        aria-label="Toggle two-factor authentication"
+                        aria-pressed={formData.twoFactorEnabled}
                         className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
                           formData.twoFactorEnabled ? 'bg-emerald-500/30' : 'bg-slate-500/30'
                         }`}
@@ -424,7 +371,7 @@ export function EditUserModal({ isOpen, user, onClose, onSubmit }: EditUserModal
             </form>
           </div>
 
-          <div className="flex-shrink-0 px-6 py-4 border-t border-white/10 bg-gradient-to-t from-white/5 to-transparent">
+          <div className="shrink-0 px-6 py-4 border-t border-white/10 bg-linear-to-t from-white/5 to-transparent">
             <div className="flex gap-3">
               {activeTab === 'basic' && (
                 <>

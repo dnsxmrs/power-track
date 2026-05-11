@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Mail, User, Lock, Shield, Phone, CheckCircle } from 'lucide-react';
 import { GlassCard } from '../../../components/GlassCard';
+import { normalizeEmail, formatPhoneDigitsForInput, validatePhoneDigits, validateUserEmail, validateUserName } from '@/lib/userAccountValidation';
 
 interface AddUserModalProps {
   isOpen: boolean;
@@ -55,37 +56,13 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
     'yaho.com': 'yahoo.com',
   };
 
-  const validateName = (name: string): { valid: boolean; error?: string } => {
-    const trimmed = name.trim();
-    if (!trimmed) {
-      return { valid: false, error: 'Name is required' };
-    }
-    if (trimmed.length < 2) {
-      return { valid: false, error: 'Name must be at least 2 characters' };
-    }
-    if (trimmed.length > 50) {
-      return { valid: false, error: 'Name must not exceed 50 characters' };
-    }
-    if (!/^[a-zA-Z\s\-']+$/.test(trimmed)) {
-      return { valid: false, error: 'Name can only contain letters, spaces, hyphens, and apostrophes' };
-    }
-    return { valid: true };
-  };
-
   const validateEmail = (email: string): { valid: boolean; error?: string; warning?: string } => {
-    const trimmed = email.trim().toLowerCase();
-    if (!trimmed) {
-      return { valid: false, error: 'Email is required' };
+    const base = validateUserEmail(email);
+    if (!base.valid) {
+      return { valid: false, error: base.error };
     }
-    if (trimmed.length > 100) {
-      return { valid: false, error: 'Email must not exceed 100 characters' };
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-      return { valid: false, error: 'Invalid email format (e.g. user@company.com)' };
-    }
-    if (trimmed.includes(' ')) {
-      return { valid: false, error: 'Email cannot contain spaces' };
-    }
+
+    const trimmed = normalizeEmail(email);
 
     const domain = trimmed.split('@')[1];
     const typoMatch = commonDomainTypos[domain];
@@ -100,35 +77,16 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
     return { valid: true };
   };
 
-  const validatePhone = (digits: string): { valid: boolean; error?: string } => {
-    const cleanedDigits = String(digits).replace(/\D/g, '');
-    if (!cleanedDigits || cleanedDigits.length === 0) {
-      return { valid: false, error: 'Phone number is required' };
-    }
-    if (cleanedDigits.length !== 10) {
-      return { valid: false, error: `Phone number must be exactly 10 digits (${cleanedDigits.length}/10)` };
-    }
-    return { valid: true };
-  };
-
-  const formatPhoneDigits = (input: string): string => {
-    const digits = String(input).replace(/\D/g, '').slice(0, 10);
-    if (digits.length === 0) return '';
-    if (digits.length <= 3) return digits;
-    if (digits.length <= 6) return `${digits.slice(0, 3)} ${digits.slice(3)}`;
-    return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
-  };
-
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    const nameValidation = validateName(formData.name);
+    const nameValidation = validateUserName(formData.name);
     if (!nameValidation.valid) newErrors.name = nameValidation.error || '';
 
     const emailValidation = validateEmail(formData.email);
     if (!emailValidation.valid) newErrors.email = emailValidation.error || '';
 
-    const phoneValidation = validatePhone(phoneDigits);
+    const phoneValidation = validatePhoneDigits(phoneDigits);
     if (!phoneValidation.valid) newErrors.phoneNumber = phoneValidation.error || '';
 
     setErrors(newErrors);
@@ -139,7 +97,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
     const digits = value.replace(/\D/g, '').slice(0, 10);
     setPhoneDigits(digits);
 
-    const phoneValidation = validatePhone(digits);
+    const phoneValidation = validatePhoneDigits(digits);
     setValidations(prev => ({ ...prev, phoneNumber: phoneValidation.valid }));
 
     if (errors.phoneNumber) {
@@ -156,7 +114,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
 
   const handleNameChange = (value: string) => {
     setFormData(prev => ({ ...prev, name: value }));
-    const nameValidation = validateName(value);
+    const nameValidation = validateUserName(value);
     setValidations(prev => ({ ...prev, name: nameValidation.valid }));
     if (errors.name) {
       const newErrors = { ...errors };
@@ -247,7 +205,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
       >
         <GlassCard glowColor="cyan" className="w-full max-w-2xl max-h-[90vh] flex flex-col">
-          <div className="p-6 flex-shrink-0">
+          <div className="p-6 shrink-0">
             {/* Header */}
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-white">Add New User</h2>
@@ -347,7 +305,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
                     <input
                       type="tel"
                       inputMode="numeric"
-                      value={formatPhoneDigits(phoneDigits)}
+                      value={formatPhoneDigitsForInput(phoneDigits)}
                       onChange={e => handlePhoneDigitChange(e.target.value)}
                       placeholder="917 123 4567"
                       maxLength={12}
@@ -410,7 +368,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
           </div>
 
           {/* Footer - Buttons */}
-          <div className="flex-shrink-0 px-6 py-4 border-t border-white/10 bg-gradient-to-t from-white/5 to-transparent">
+          <div className="shrink-0 px-6 py-4 border-t border-white/10 bg-linear-to-t from-white/5 to-transparent">
             <div className="flex gap-3">
               <motion.button
                 type="button"

@@ -18,7 +18,7 @@ function rateLimitKey(req: Request, apiKeyHeader?: string) {
 		if (apiKeyHeader) return `apiKey:${apiKeyHeader}`;
 		const forwarded = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
 		if (forwarded) return `ip:${forwarded.split(',')[0].trim()}`;
-	} catch (e) {
+	} catch {
 		// ignore
 	}
 	return 'anon';
@@ -48,6 +48,10 @@ function unauthorizedJson(msg = 'Unauthorized') {
 
 function badRequestJson(msg = 'Bad Request') {
 	return new Response(JSON.stringify({ error: msg }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 export async function POST(req: Request) {
@@ -87,7 +91,7 @@ export async function POST(req: Request) {
 		if (!crypto.timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(signatureHeader, 'hex'))) {
 			return unauthorizedJson('Invalid signature');
 		}
-	} catch (e) {
+	} catch {
 		return unauthorizedJson('Signature verification failed');
 	}
 
@@ -96,14 +100,16 @@ export async function POST(req: Request) {
 	if (tooManyRequests(key)) return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429, headers: { 'Content-Type': 'application/json' } });
 
 	// Parse JSON body
-	let body: any;
+	let body: unknown;
 	try {
-		body = raw ? JSON.parse(raw) : {};
-	} catch (e) {
+		body = raw ? (JSON.parse(raw) as unknown) : {};
+	} catch {
 		return badRequestJson('Invalid JSON body');
 	}
 
-	const email = (body?.email ?? '').toString().trim().toLowerCase();
+	const bodyObject = isPlainObject(body) ? body : {};
+
+	const email = (bodyObject.email ?? '').toString().trim().toLowerCase();
 	if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
 		return badRequestJson('Invalid or missing email');
 	}
@@ -140,7 +146,7 @@ export async function POST(req: Request) {
 		};
 
 		return new Response(JSON.stringify({ user: safeUser }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-	} catch (error) {
+	} catch {
 		return new Response(JSON.stringify({ error: 'Internal Server Error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
 	}
 }

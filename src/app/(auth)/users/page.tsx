@@ -23,7 +23,16 @@ import { StatusBadge } from '../../components/StatusBadge';
 import { AddUserModal, type UserFormData } from './components/AddUserModal';
 import { EditUserModal, type EditUserData } from './components/EditUserModal';
 import { DeleteUserModal } from './components/DeleteUserModal';
-import { createUserAccount, deleteUserAccount, fetchUsersForManagement, updateUserAccount, type UserManagementItem } from '../../_actions/users';
+import { ReactivateUserModal } from './components/ReactivateUserModal';
+import {
+  createUserAccount,
+  deleteUserAccount,
+  fetchUsersForManagement,
+  reactivateUserAccount,
+  updateUserAccount,
+  type ReactivateCandidate,
+  type UserManagementItem,
+} from '../../_actions/users';
 
 const roleColors = {
   admin: { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/30' },
@@ -66,6 +75,10 @@ export default function UsersPage() {
   const [selectedUserForEdit, setSelectedUserForEdit] = useState<UserManagementItem | null>(null);
   const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
   const [selectedUserForDelete, setSelectedUserForDelete] = useState<UserManagementItem | null>(null);
+  const [isReactivateUserModalOpen, setIsReactivateUserModalOpen] = useState(false);
+  const [reactivateCandidate, setReactivateCandidate] = useState<ReactivateCandidate | null>(null);
+  const [reactivateInput, setReactivateInput] = useState<UserFormData | null>(null);
+  const [isReactivatingUser, setIsReactivatingUser] = useState(false);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
@@ -94,7 +107,11 @@ export default function UsersPage() {
   }, []);
 
   useEffect(() => {
-    void refreshUsers();
+    const timer = window.setTimeout(() => {
+      void refreshUsers();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [refreshUsers]);
 
   const filteredUsers = useMemo(() => {
@@ -130,12 +147,46 @@ export default function UsersPage() {
   };
 
   const handleAddUser = async (userData: UserFormData) => {
-    await createUserAccount(userData);
+    const result = await createUserAccount(userData);
+
+    if (result.status === 'reactivate_required') {
+      setReactivateCandidate(result.user);
+      setReactivateInput(userData);
+      setIsAddUserModalOpen(false);
+      setIsReactivateUserModalOpen(true);
+      return;
+    }
+
     setNotification({
       message: `User ${userData.name} created successfully. Credentials were emailed to ${userData.email}.`,
       type: 'success',
     });
     void refreshUsers();
+  };
+
+  const handleConfirmReactivateUser = async (userId: string) => {
+    if (!reactivateInput) {
+      setNotification({
+        message: 'Missing reactivation details. Please try again.',
+        type: 'error',
+      });
+      return;
+    }
+
+    try {
+      setIsReactivatingUser(true);
+      await reactivateUserAccount(userId, reactivateInput);
+      setNotification({
+        message: `User reactivated successfully. Credentials were emailed to ${reactivateInput.email}.`,
+        type: 'success',
+      });
+      await refreshUsers();
+      setIsReactivateUserModalOpen(false);
+      setReactivateCandidate(null);
+      setReactivateInput(null);
+    } finally {
+      setIsReactivatingUser(false);
+    }
   };
 
   const handleEditUser = (user: UserManagementItem) => {
@@ -350,7 +401,7 @@ export default function UsersPage() {
                   <GlassCard glowColor={user.status === 'normal' ? 'cyan' : 'red'} hover className="p-5">
                     <div className="flex items-center justify-between gap-4" onClick={() => setExpandedUser(isExpanded ? null : user.id)}>
                       <div className="flex items-center gap-4 flex-1 min-w-0">
-                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-cyan-500/30 to-indigo-500/30 flex items-center justify-center border border-cyan-500/30 shrink-0">
+                        <div className="w-12 h-12 rounded-lg bg-linear-to-br from-cyan-500/30 to-indigo-500/30 flex items-center justify-center border border-cyan-500/30 shrink-0">
                           <span className="text-lg font-bold text-cyan-400">
                             {user.name
                               .split(' ')
@@ -485,6 +536,7 @@ export default function UsersPage() {
         />
 
         <EditUserModal
+          key={`${selectedUserForEdit?.id ?? 'none'}-${isEditUserModalOpen ? 'open' : 'closed'}`}
           isOpen={isEditUserModalOpen}
           user={selectedUserForEdit}
           onClose={() => {
@@ -503,6 +555,18 @@ export default function UsersPage() {
             setSelectedUserForDelete(null);
           }}
           onConfirm={handleConfirmDeleteUser}
+        />
+
+        <ReactivateUserModal
+          isOpen={isReactivateUserModalOpen}
+          user={reactivateCandidate}
+          isLoading={isReactivatingUser}
+          onClose={() => {
+            setIsReactivateUserModalOpen(false);
+            setReactivateCandidate(null);
+            setReactivateInput(null);
+          }}
+          onConfirm={handleConfirmReactivateUser}
         />
       </motion.div>
     </>

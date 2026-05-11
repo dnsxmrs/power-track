@@ -6,6 +6,7 @@ import { hashPassword } from 'better-auth/crypto';
 import { auth } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
 import { sendAccountEmail } from './email';
+import { normalizeEmail, normalizePHPhoneNumber, validatePHPhoneNumber, validateUserEmail, validateUserName } from '../../lib/userAccountValidation';
 
 export interface CreateAccountInput {
 	name: string;
@@ -14,6 +15,16 @@ export interface CreateAccountInput {
 	role: 'admin' | 'user';
 	twoFactorEnabled: boolean;
 }
+
+export type ReactivateCandidate = {
+	id: string;
+	name: string;
+	email: string;
+};
+
+export type CreateUserAccountResult =
+	| { status: 'created'; userId: string }
+	| { status: 'reactivate_required'; user: ReactivateCandidate };
 
 export interface UserManagementItem {
 	id: string;
@@ -144,7 +155,31 @@ export async function fetchUsersForManagement(): Promise<UserManagementItem[]> {
 	});
 }
 
-export async function createUserAccount(input: CreateAccountInput): Promise<{ userId: string }> {
+function validateAndNormalizeCreateInput(input: CreateAccountInput): { name: string; email: string; phoneNumber: string } {
+	const name = input.name.trim();
+	const email = normalizeEmail(input.email);
+
+	const nameValidation = validateUserName(name);
+	if (!nameValidation.valid) {
+		throw new Error(nameValidation.error ?? 'Invalid name');
+	}
+
+	const emailValidation = validateUserEmail(email);
+	if (!emailValidation.valid) {
+		throw new Error(emailValidation.error ?? 'Invalid email');
+	}
+
+	const phoneValidation = validatePHPhoneNumber(input.phoneNumber);
+	if (!phoneValidation.valid) {
+		throw new Error(phoneValidation.error ?? 'Invalid phone number');
+	}
+
+	const phoneNumber = normalizePHPhoneNumber(input.phoneNumber);
+
+	return { name, email, phoneNumber };
+}
+
+export async function createUserAccount(input: CreateAccountInput): Promise<CreateUserAccountResult> {
 	const requestHeaders = await headers();
 	const session = await auth.api.getSession({ headers: requestHeaders });
 
@@ -152,55 +187,19 @@ export async function createUserAccount(input: CreateAccountInput): Promise<{ us
 		throw new Error('Unauthorized');
 	}
 
-	const name = input.name.trim();
-	const email = input.email.trim().toLowerCase();
-	const phoneNumber = input.phoneNumber.trim();
-
-	// Validate name: 2-50 chars, letters/spaces/hyphens/apostrophes only
-	if (!name) {
-		throw new Error('Name is required');
-	}
-	if (name.length < 2) {
-		throw new Error('Name must be at least 2 characters');
-	}
-	if (name.length > 50) {
-		throw new Error('Name must not exceed 50 characters');
-	}
-	if (!/^[a-zA-Z\s\-']+$/.test(name)) {
-		throw new Error('Name can only contain letters, spaces, hyphens, and apostrophes');
-	}
-
-	// Validate email: valid format, no spaces, max 100 chars
-	if (!email) {
-		throw new Error('Email is required');
-	}
-	if (email.length > 100) {
-		throw new Error('Email must not exceed 100 characters');
-	}
-	if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-		throw new Error('A valid email is required (e.g. user@company.com)');
-	}
-	if (email.includes(' ')) {
-		throw new Error('Email cannot contain spaces');
-	}
-
-	// Validate phone: basic check for +63 prefix
-	if (!phoneNumber) {
-		throw new Error('Phone number is required');
-	}
-	if (!phoneNumber.startsWith('+63')) {
-		throw new Error('Phone number must start with +63');
-	}
+	const { name, email, phoneNumber } = validateAndNormalizeCreateInput(input);
 
 	const password = generateTemporaryPassword();
 	const hashedPassword = await hashPassword(password);
 
-		// If a user with this email exists but is soft-deleted, signal the caller
-		const existing = await prisma.user.findUnique({ where: { email } });
-		if (existing && existing.deletedAt) {
-				// Signal the client that this account exists but is deactivated
-				throw new Error(`REACTIVATE:${existing.id}`);
-		}
+	// If a user with this email exists but is soft-deleted, return a structured signal.
+	const existing = await prisma.user.findUnique({ where: { email } });
+	if (existing && existing.deletedAt) {
+		return {
+			status: 'reactivate_required',
+			user: { id: existing.id, name: existing.name, email: existing.email },
+		};
+	}
 
 		const created = await auth.api.createUser({
 		headers: requestHeaders,
@@ -236,7 +235,7 @@ export async function createUserAccount(input: CreateAccountInput): Promise<{ us
 
 	await sendAccountEmail(email, name, email, password);
 
-	return { userId: created.user.id };
+	return { status: 'created', userId: created.user.id };
 }
 
 export async function reactivateUserAccount(userId: string, input: CreateAccountInput): Promise<{ userId: string; tempPassword: string }> {
@@ -247,23 +246,7 @@ export async function reactivateUserAccount(userId: string, input: CreateAccount
 		throw new Error('Unauthorized');
 	}
 
-	const name = input.name.trim();
-	const email = input.email.trim().toLowerCase();
-	const phoneNumber = input.phoneNumber.trim();
-
-	// Basic validations (same rules as create)
-	if (!name) throw new Error('Name is required');
-	if (name.length < 2) throw new Error('Name must be at least 2 characters');
-	if (name.length > 50) throw new Error('Name must not exceed 50 characters');
-	if (!/^[a-zA-Z\s\-']+$/.test(name)) throw new Error('Name can only contain letters, spaces, hyphens, and apostrophes');
-
-	if (!email) throw new Error('Email is required');
-	if (email.length > 100) throw new Error('Email must not exceed 100 characters');
-	if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('A valid email is required (e.g. user@company.com)');
-	if (email.includes(' ')) throw new Error('Email cannot contain spaces');
-
-	if (!phoneNumber) throw new Error('Phone number is required');
-	if (!phoneNumber.startsWith('+63')) throw new Error('Phone number must start with +63');
+	const { name, email, phoneNumber } = validateAndNormalizeCreateInput(input);
 
 	// Restore user record and update fields
 	await prisma.user.update({
@@ -319,28 +302,15 @@ export async function updateUserAccount(userId: string, updates: UpdateAccountIn
 	}
 
 	const name = updates.name.trim();
-	const phoneNumber = updates.phoneNumber.trim();
+	const phoneNumber = normalizePHPhoneNumber(updates.phoneNumber);
 
-	// Validate name: 2-50 chars, letters/spaces/hyphens/apostrophes only
-	if (!name) {
-		throw new Error('Name is required');
+	const nameValidation = validateUserName(name);
+	if (!nameValidation.valid) {
+		throw new Error(nameValidation.error ?? 'Invalid name');
 	}
-	if (name.length < 2) {
-		throw new Error('Name must be at least 2 characters');
-	}
-	if (name.length > 50) {
-		throw new Error('Name must not exceed 50 characters');
-	}
-	if (!/^[a-zA-Z\s\-']+$/.test(name)) {
-		throw new Error('Name can only contain letters, spaces, hyphens, and apostrophes');
-	}
-
-	// Validate phone: basic check for +63 prefix
-	if (!phoneNumber) {
-		throw new Error('Phone number is required');
-	}
-	if (!phoneNumber.startsWith('+63')) {
-		throw new Error('Phone number must start with +63');
+	const phoneValidation = validatePHPhoneNumber(updates.phoneNumber);
+	if (!phoneValidation.valid) {
+		throw new Error(phoneValidation.error ?? 'Invalid phone number');
 	}
 
 	// Update user in database
