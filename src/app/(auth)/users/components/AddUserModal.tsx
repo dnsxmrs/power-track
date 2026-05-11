@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Mail, User, Lock, Shield, Phone } from 'lucide-react';
+import { X, Mail, User, Lock, Shield, Phone, CheckCircle } from 'lucide-react';
 import { GlassCard } from '../../../components/GlassCard';
+import { normalizeEmail, formatPhoneDigitsForInput, validatePhoneDigits, validateUserEmail, validateUserName } from '@/lib/userAccountValidation';
 
 interface AddUserModalProps {
   isOpen: boolean;
@@ -19,47 +20,138 @@ export interface UserFormData {
   twoFactorEnabled: boolean;
 }
 
+interface Validations {
+  name: boolean;
+  email: boolean;
+  phoneNumber: boolean;
+}
+
 export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
   const [formData, setFormData] = useState<UserFormData>({
     name: '',
     email: '',
-    phoneNumber: '+63',
+    phoneNumber: '',
     role: 'user',
     twoFactorEnabled: false,
   });
 
+  const [phoneDigits, setPhoneDigits] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [validations, setValidations] = useState<Validations>({
+    name: false,
+    email: false,
+    phoneNumber: false,
+  });
   const [isLoading, setIsLoading] = useState(false);
+  const [emailWarning, setEmailWarning] = useState<string>('');
+
+  const commonDomainTypos: Record<string, string> = {
+    'gmial.com': 'gmail.com',
+    'gmai.com': 'gmail.com',
+    'gmil.com': 'gmail.com',
+    'gmal.com': 'gmail.com',
+    'outlok.com': 'outlook.com',
+    'outloo.com': 'outlook.com',
+    'yahooo.com': 'yahoo.com',
+    'yaho.com': 'yahoo.com',
+  };
+
+  const validateEmail = (email: string): { valid: boolean; error?: string; warning?: string } => {
+    const base = validateUserEmail(email);
+    if (!base.valid) {
+      return { valid: false, error: base.error };
+    }
+
+    const trimmed = normalizeEmail(email);
+
+    const domain = trimmed.split('@')[1];
+    const typoMatch = commonDomainTypos[domain];
+    if (typoMatch) {
+      return {
+        valid: false,
+        error: `Did you mean @${typoMatch}?`,
+        warning: `Possible typo: ${domain}`,
+      };
+    }
+
+    return { valid: true };
+  };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
+    const nameValidation = validateUserName(formData.name);
+    if (!nameValidation.valid) newErrors.name = nameValidation.error || '';
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
-    }
+    const emailValidation = validateEmail(formData.email);
+    if (!emailValidation.valid) newErrors.email = emailValidation.error || '';
 
-    // Phone number validation (Philippines +63)
-    const phone = (formData.phoneNumber || '').toString().trim();
-    const normalized = phone.replace(/\s+/g, '');
-    if (!normalized) {
-      newErrors.phoneNumber = 'Phone number is required';
-    } else if (!normalized.startsWith('+63')) {
-      newErrors.phoneNumber = 'Phone number must start with +63';
-    } else {
-      const digits = normalized.replace(/\D/g, '');
-      if (digits.length < 11) {
-        newErrors.phoneNumber = 'Enter a valid Philippine phone number (e.g. +639171234567)';
-      }
-    }
+    const phoneValidation = validatePhoneDigits(phoneDigits);
+    if (!phoneValidation.valid) newErrors.phoneNumber = phoneValidation.error || '';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handlePhoneDigitChange = (value: string) => {
+    const digits = value.replace(/\D/g, '').slice(0, 10);
+    setPhoneDigits(digits);
+
+    const phoneValidation = validatePhoneDigits(digits);
+    setValidations(prev => ({ ...prev, phoneNumber: phoneValidation.valid }));
+
+    if (errors.phoneNumber) {
+      const newErrors = { ...errors };
+      delete newErrors.phoneNumber;
+      setErrors(newErrors);
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      phoneNumber: `+63${digits}`,
+    }));
+  };
+
+  const handleNameChange = (value: string) => {
+    setFormData(prev => ({ ...prev, name: value }));
+    const nameValidation = validateUserName(value);
+    setValidations(prev => ({ ...prev, name: nameValidation.valid }));
+    if (errors.name) {
+      const newErrors = { ...errors };
+      delete newErrors.name;
+      setErrors(newErrors);
+    }
+  };
+
+  const handleEmailChange = (value: string) => {
+    setFormData(prev => ({ ...prev, email: value }));
+    const emailValidation = validateEmail(value);
+    setValidations(prev => ({ ...prev, email: emailValidation.valid }));
+    setEmailWarning(emailValidation.warning || '');
+
+    if (errors.email) {
+      const newErrors = { ...errors };
+      delete newErrors.email;
+      setErrors(newErrors);
+    }
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: (e.target as HTMLInputElement).checked,
+      }));
+    } else if (name === 'name') {
+      handleNameChange(value);
+    } else if (name === 'email') {
+      handleEmailChange(value);
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,29 +167,19 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
       setFormData({
         name: '',
         email: '',
-        phoneNumber: '+63',
+        phoneNumber: '',
         role: 'user',
         twoFactorEnabled: false,
       });
+      setPhoneDigits('');
       setErrors({});
+      setValidations({ name: false, email: false, phoneNumber: false });
+      setEmailWarning('');
       onClose();
     } catch (error) {
       setErrors({ submit: error instanceof Error ? error.message : 'Failed to create user' });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
-    }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -123,7 +205,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
       >
         <GlassCard glowColor="cyan" className="w-full max-w-2xl max-h-[90vh] flex flex-col">
-          <div className="p-6 flex-shrink-0">
+          <div className="p-6 shrink-0">
             {/* Header */}
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-white">Add New User</h2>
@@ -144,65 +226,96 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
               <div className="grid grid-cols-2 gap-4 mb-4">
                 {/* Name Field - Full Width */}
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    <span className="flex items-center gap-2">
-                      <User size={16} className="text-cyan-400" />
-                      Full Name
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-slate-300">
+                      <span className="flex items-center gap-2">
+                        <User size={16} className="text-cyan-400" />
+                        Full Name
+                      </span>
+                    </label>
+                    <span className="text-xs text-slate-500">
+                      {formData.name.length}/50
+                      {validations.name && <CheckCircle size={14} className="inline ml-1 text-emerald-400" />}
                     </span>
-                  </label>
+                  </div>
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
-                    onChange={handleInputChange}
+                    onChange={e => handleNameChange(e.target.value)}
                     placeholder="John Doe"
+                    maxLength={50}
                     className={`w-full px-4 py-2 bg-white/5 border rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all ${
                       errors.name ? 'border-red-500/50' : 'border-white/10'
                     }`}
                   />
                   {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
+                  <p className="text-slate-500 text-xs mt-1">Letters, spaces, hyphens, and apostrophes only</p>
                 </div>
 
                 {/* Email Field - Full Width */}
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    <span className="flex items-center gap-2">
-                      <Mail size={16} className="text-cyan-400" />
-                      Email Address
-                    </span>
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-slate-300">
+                      <span className="flex items-center gap-2">
+                        <Mail size={16} className="text-cyan-400" />
+                        Email Address
+                      </span>
+                    </label>
+                    {validations.email && <CheckCircle size={14} className="text-emerald-400" />}
+                  </div>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="user@example.com"
+                    onChange={e => handleEmailChange(e.target.value)}
+                    placeholder="user@company.com"
+                    maxLength={100}
                     className={`w-full px-4 py-2 bg-white/5 border rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all ${
-                      errors.email ? 'border-red-500/50' : 'border-white/10'
+                      errors.email ? 'border-red-500/50' : emailWarning ? 'border-amber-500/50' : 'border-white/10'
                     }`}
                   />
                   {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+                  {emailWarning && !errors.email && (
+                    <p className="text-amber-400 text-xs mt-1">⚠️ {emailWarning}</p>
+                  )}
+                  <p className="text-slate-500 text-xs mt-1">Temporary credentials will be sent to this email</p>
                 </div>
 
                 {/* Phone Number Field - Full Width */}
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    <span className="flex items-center gap-2">
-                      <Phone size={16} className="text-cyan-400" />
-                      Phone Number
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-slate-300">
+                      <span className="flex items-center gap-2">
+                        <Phone size={16} className="text-cyan-400" />
+                        Phone Number
+                      </span>
+                    </label>
+                    <span className="text-xs text-slate-500">
+                      {phoneDigits.length}/10
+                      {validations.phoneNumber && <CheckCircle size={14} className="inline ml-1 text-emerald-400" />}
                     </span>
-                  </label>
-                  <input
-                    type="tel"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handleInputChange}
-                    placeholder="+63 917 123 4567"
-                    className={`w-full px-4 py-2 bg-white/5 border rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all ${
-                      errors.phoneNumber ? 'border-red-500/50' : 'border-white/10'
-                    }`}
-                  />
+                  </div>
+                  <div className="flex gap-2">
+                    {/* Fixed +63 Prefix */}
+                    <div className="flex items-center px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-slate-400 font-medium">
+                      +63
+                    </div>
+                    {/* Phone Digits Input */}
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      value={formatPhoneDigitsForInput(phoneDigits)}
+                      onChange={e => handlePhoneDigitChange(e.target.value)}
+                      placeholder="917 123 4567"
+                      maxLength={12}
+                      className={`flex-1 px-4 py-2 bg-white/5 border rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all ${
+                        errors.phoneNumber ? 'border-red-500/50' : 'border-white/10'
+                      }`}
+                    />
+                  </div>
                   {errors.phoneNumber && <p className="text-red-400 text-xs mt-1">{errors.phoneNumber}</p>}
+                  <p className="text-slate-500 text-xs mt-1">Enter 10 digits for Philippine mobile numbers (91X XXXX XXXX)</p>
                 </div>
 
                 {/* Role Field */}
@@ -229,7 +342,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
                 </div>
 
                 {/* Two Factor Toggle - Full Width */}
-                <div className="col-span-2 flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-lg">
+                <div className="col-span-2 flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-lg hover:border-cyan-500/30 transition-all cursor-pointer">
                   <input
                     type="checkbox"
                     name="twoFactorEnabled"
@@ -241,6 +354,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
                   <label htmlFor="twoFactor" className="text-sm text-slate-300 cursor-pointer flex-1">
                     Enable Two-Factor Authentication
                   </label>
+                  <span className="text-xs text-slate-500">Recommended for security</span>
                 </div>
               </div>
 
@@ -254,7 +368,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
           </div>
 
           {/* Footer - Buttons */}
-          <div className="flex-shrink-0 px-6 py-4 border-t border-white/10 bg-gradient-to-t from-white/5 to-transparent">
+          <div className="shrink-0 px-6 py-4 border-t border-white/10 bg-linear-to-t from-white/5 to-transparent">
             <div className="flex gap-3">
               <motion.button
                 type="button"

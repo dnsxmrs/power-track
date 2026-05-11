@@ -1,9 +1,112 @@
-# [1.7.0](https://github.com/dnsxmrs/power-track/compare/v1.6.0...v1.7.0) (2026-05-11)
+# [1.8.0-beta.1](https://github.com/dnsxmrs/power-track/compare/v1.7.0...v1.8.0-beta.1) (2026-05-11)
 
 
 ### Features
 
-* **api:** implement user authentication and rate limiting in POST request handler ([1fc7e90](https://github.com/dnsxmrs/power-track/commit/1fc7e904212cc712667756ed9dea65072e40d26a))
+* **notification:** add user creation success/error notifications ([095b063](https://github.com/dnsxmrs/power-track/commit/095b0634bda97736800f3f0f2b2cdc106e41a159))
+* **support:** add SupportClient component and SupportPage for FAQs and support threads ([4cbbc96](https://github.com/dnsxmrs/power-track/commit/4cbbc96813159d5a93833da289214a3603038d5b))
+* **users:** add deletedAt field to User model for soft deletion ([6255b9f](https://github.com/dnsxmrs/power-track/commit/6255b9f121cf5693b9a28fe4a2d60d9f0eff9e4e))
+* **users:** enhance EditUserModal to initialize form data and phone digits on open ([f8f85ab](https://github.com/dnsxmrs/power-track/commit/f8f85ab23d3e81798558ae236569573792ab2b0f))
+* **users:** enhance phone number display formatting in UsersPage ([69e9624](https://github.com/dnsxmrs/power-track/commit/69e9624ad98b893661c721967e4cd5fd58d86446))
+* **users:** enhance user management with improved data handling and new user attributes ([97f6580](https://github.com/dnsxmrs/power-track/commit/97f6580a523c3397697fb788a6cbddb303bdc056))
+* **users:** implement DeleteUserModal and user deactivation functionality ([fa8983c](https://github.com/dnsxmrs/power-track/commit/fa8983c0fe5148a2dc092670c6030ad1a8f4f8f2))
+* **users:** implement DeleteUserModal and user deactivation functionality ([44b4dc1](https://github.com/dnsxmrs/power-track/commit/44b4dc1c4545af899cb45392fcc3125957c23725))
+* **users:** implement EditUserModal for user editing functionality ([9a437b5](https://github.com/dnsxmrs/power-track/commit/9a437b5096d0667fbff863f4497303afc54e396d))
+* **users:** update createUserAccount to set phoneNumber and twoFactorEnabled ([0f5ce5b](https://github.com/dnsxmrs/power-track/commit/0f5ce5bafeefb8155831bf31d5bfbc4d3144af29))
+* **users:** update phone number display to show '(none)' for empty values ([c868988](https://github.com/dnsxmrs/power-track/commit/c868988e7f3f34ccbb8eac028e3300c14f97c7ca))
+* **validation:** enhance user input validation for name, email, and phone number in AddUserModal and createUserAccount ([ff459c3](https://github.com/dnsxmrs/power-track/commit/ff459c338aea0252da39dca9c3fa9a3cdb489d12))
+* **validation:** update phone number validation logic in AddUserModal and createUserAccount ([2a07423](https://github.com/dnsxmrs/power-track/commit/2a07423afb8f1d1d04841ec4189088d3ed7c625b))
+
+# [1.7.0-beta.13](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.12...v1.7.0-beta.13) (2026-05-11)
+
+
+### Features
+
+* **support:** add SupportClient component and SupportPage for FAQs and support threads ([4cbbc96](https://github.com/dnsxmrs/power-track/commit/4cbbc96813159d5a93833da289214a3603038d5b))
+
+# [1.7.0-beta.12](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.11...v1.7.0-beta.12) (2026-04-30)
+
+
+### Features
+
+* **users:** implement DeleteUserModal and user deactivation functionality ([fa8983c](https://github.com/dnsxmrs/power-track/commit/fa8983c0fe5148a2dc092670c6030ad1a8f4f8f2))
+
+# [1.7.0-beta.11](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.10...v1.7.0-beta.11) (2026-04-30)
+
+
+### Features
+
+* **users:** implement DeleteUserModal and user deactivation functionality ([44b4dc1](https://github.com/dnsxmrs/power-track/commit/44b4dc1c4545af899cb45392fcc3125957c23725))
+
+# [1.7.0-beta.10](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.9...v1.7.0-beta.10) (2026-04-30)
+
+
+### Features
+
+* **users:** add deletedAt field to User model for soft deletion ([6255b9f](https://github.com/dnsxmrs/power-track/commit/6255b9f121cf5693b9a28fe4a2d60d9f0eff9e4e))
+
+# [1.7.0-beta.9](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.8...v1.7.0-beta.9) (2026-04-30)
+
+
+### Features
+
+* **users:** enhance EditUserModal to initialize form data and phone digits on open ([f8f85ab](https://github.com/dnsxmrs/power-track/commit/f8f85ab23d3e81798558ae236569573792ab2b0f))
+
+# [1.7.0-beta.8](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.7...v1.7.0-beta.8) (2026-04-30)
+
+
+### Features
+
+* **users:** implement EditUserModal for user editing functionality ([9a437b5](https://github.com/dnsxmrs/power-track/commit/9a437b5096d0667fbff863f4497303afc54e396d))
+
+# [1.7.0-beta.7](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.6...v1.7.0-beta.7) (2026-04-30)
+
+
+### Features
+
+* **users:** update phone number display to show '(none)' for empty values ([c868988](https://github.com/dnsxmrs/power-track/commit/c868988e7f3f34ccbb8eac028e3300c14f97c7ca))
+
+# [1.7.0-beta.6](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.5...v1.7.0-beta.6) (2026-04-30)
+
+
+### Features
+
+* **users:** enhance phone number display formatting in UsersPage ([69e9624](https://github.com/dnsxmrs/power-track/commit/69e9624ad98b893661c721967e4cd5fd58d86446))
+
+# [1.7.0-beta.5](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.4...v1.7.0-beta.5) (2026-04-30)
+
+
+### Features
+
+* **users:** update createUserAccount to set phoneNumber and twoFactorEnabled ([0f5ce5b](https://github.com/dnsxmrs/power-track/commit/0f5ce5bafeefb8155831bf31d5bfbc4d3144af29))
+
+# [1.7.0-beta.4](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.3...v1.7.0-beta.4) (2026-04-30)
+
+
+### Features
+
+* **validation:** update phone number validation logic in AddUserModal and createUserAccount ([2a07423](https://github.com/dnsxmrs/power-track/commit/2a07423afb8f1d1d04841ec4189088d3ed7c625b))
+
+# [1.7.0-beta.3](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.2...v1.7.0-beta.3) (2026-04-30)
+
+
+### Features
+
+* **users:** enhance user management with improved data handling and new user attributes ([97f6580](https://github.com/dnsxmrs/power-track/commit/97f6580a523c3397697fb788a6cbddb303bdc056))
+
+# [1.7.0-beta.2](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.1...v1.7.0-beta.2) (2026-04-30)
+
+
+### Features
+
+* **validation:** enhance user input validation for name, email, and phone number in AddUserModal and createUserAccount ([ff459c3](https://github.com/dnsxmrs/power-track/commit/ff459c338aea0252da39dca9c3fa9a3cdb489d12))
+
+# [1.7.0-beta.1](https://github.com/dnsxmrs/power-track/compare/v1.6.0...v1.7.0-beta.1) (2026-04-30)
+
+
+### Features
+
+* **notification:** add user creation success/error notifications ([095b063](https://github.com/dnsxmrs/power-track/commit/095b0634bda97736800f3f0f2b2cdc106e41a159))
 
 # [1.6.0](https://github.com/dnsxmrs/power-track/compare/v1.5.0...v1.6.0) (2026-04-30)
 
