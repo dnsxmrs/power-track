@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/dnsxmrs/power-track/compare/v1.6.0...v1.7.0) (2026-05-11)
+
+
+### Features
+
+* **api:** implement user authentication and rate limiting in POST request handler ([1fc7e90](https://github.com/dnsxmrs/power-track/commit/1fc7e904212cc712667756ed9dea65072e40d26a))
+
 # [1.6.0](https://github.com/dnsxmrs/power-track/compare/v1.5.0...v1.6.0) (2026-04-30)
 
 
