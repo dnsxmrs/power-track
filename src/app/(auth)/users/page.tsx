@@ -184,6 +184,12 @@ export default function UsersPage() {
       setIsReactivateUserModalOpen(false);
       setReactivateCandidate(null);
       setReactivateInput(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to reactivate user. Please try again.';
+      setNotification({
+        message,
+        type: 'error',
+      });
     } finally {
       setIsReactivatingUser(false);
     }
