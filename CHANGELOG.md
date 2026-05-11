@@ -1,3 +1,10 @@
+# [1.7.0-beta.13](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.12...v1.7.0-beta.13) (2026-05-11)
+
+
+### Features
+
+* **support:** add SupportClient component and SupportPage for FAQs and support threads ([4cbbc96](https://github.com/dnsxmrs/power-track/commit/4cbbc96813159d5a93833da289214a3603038d5b))
+
 # [1.7.0-beta.12](https://github.com/dnsxmrs/power-track/compare/v1.7.0-beta.11...v1.7.0-beta.12) (2026-04-30)
 
 
