@@ -184,12 +184,7 @@ export function SignInClient() {
                         </button>
                     </form>
 
-                    <p className="text-center text-sm text-slate-400 mt-8">
-                        Don&apos;t have an account?{' '}
-                        <a href="/sign-up" className="font-semibold text-[#00d4ff] hover:text-[#00b8e6] transition-colors rounded-xs focus:ring-2 focus:ring-[#00d4ff] focus:outline-none">
-                            Sign up
-                        </a>
-                    </p>
+
                 </GlassCard>
             </motion.div>
         </div>

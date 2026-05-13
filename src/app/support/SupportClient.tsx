@@ -48,7 +48,7 @@ export function SupportClient() {
                 icon: CircleHelp,
                 question: 'How do I create an account and sign in?',
                 answer:
-                    'Use the Sign Up page to create an account with email + password, then sign in. If you already have access via Google, choose “Continue with Google” on the Sign In page.',
+                    'Sign in with your email + password. If you have access via Google, choose “Continue with Google” on the Sign In page.',
             },
             {
                 icon: LifeBuoy,

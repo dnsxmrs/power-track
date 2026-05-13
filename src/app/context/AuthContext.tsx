@@ -1,13 +1,12 @@
 'use client';
 
 import { createContext, useContext } from 'react';
-import { signIn, signOut, signUp, useSession } from '@/lib/auth-client';
+import { signIn, signOut, useSession } from '@/lib/auth-client';
 
 type AuthContextType = {
   isLoggedIn: boolean;
   loading: boolean;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: string | null }>;
-  register: (name: string, email: string, password: string) => Promise<{ error: string | null }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
   forgetPassword: (email: string) => Promise<{ error: string | null }>;
   verifyOTP: (email: string, otp: string) => Promise<{ error: string | null }>;
@@ -27,17 +26,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       password,
       rememberMe,
-      callbackURL: '/dashboard',
-    });
-
-    return { error: error?.message ?? null };
-  };
-
-  const register: AuthContextType['register'] = async (name, email, password) => {
-    const { error } = await signUp.email({
-      name,
-      email,
-      password,
       callbackURL: '/dashboard',
     });
 
@@ -90,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, loading, login, register, signInWithGoogle, forgetPassword, verifyOTP, resetPasswordWithOTP, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, loading, login, signInWithGoogle, forgetPassword, verifyOTP, resetPasswordWithOTP, logout }}>
       {children}
     </AuthContext.Provider>
   );

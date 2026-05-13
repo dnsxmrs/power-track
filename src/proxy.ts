@@ -6,13 +6,17 @@ import { auth } from '@/lib/auth';
 const PROTECTED_ROUTES = ['/dashboard', '/devices', '/alerts', '/reports', '/logs', '/branches', '/settings'];
 
 // Routes that should redirect to dashboard if already logged in
-const AUTH_ROUTES = ['/sign-in', '/sign-up', '/forgot-password'];
+const AUTH_ROUTES = ['/sign-in', '/forgot-password'];
 
 // OAuth callback routes (must not be redirected)
 const OAUTH_ROUTES = ['/api/auth/callback'];
 
 export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
+
+    if (pathname.startsWith('/sign-up')) {
+        return NextResponse.redirect(new URL('/sign-in', request.url));
+    }
 
     // Skip middleware for OAuth callbacks
     if (OAUTH_ROUTES.some((route) => pathname.startsWith(route))) {

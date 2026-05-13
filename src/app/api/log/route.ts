@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { addRequestLog, getRequestLogs } from '@/lib/requestLogs';
+import { auth } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -69,7 +70,13 @@ async function logRequest(request: NextRequest) {
     return NextResponse.json({ ok: true, log: entry }, { status: 201 });
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+    const session = await auth.api.getSession({ headers: request.headers });
+
+    if (!session) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     return NextResponse.json({ logs: await getRequestLogs() });
 }
 
