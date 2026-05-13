@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/dnsxmrs/power-track/compare/v1.8.0...v1.9.0) (2026-05-13)
+
+
+### Features
+
+* **logs:** add logs page to display energy request logs and handle unauthorized access ([26cf713](https://github.com/dnsxmrs/power-track/commit/26cf7138b05f2739d1d7b81015bd8f681c422275))
+
 # [1.8.0](https://github.com/dnsxmrs/power-track/compare/v1.7.0...v1.8.0) (2026-05-11)
 
 
