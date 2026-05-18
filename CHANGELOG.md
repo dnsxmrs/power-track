@@ -1,3 +1,10 @@
+# [1.10.0-beta.1](https://github.com/dnsxmrs/power-track/compare/v1.9.0...v1.10.0-beta.1) (2026-05-18)
+
+
+### Features
+
+* **dashboard:** refactor dashboard components and implement lazy loading for performance optimization ([5171aef](https://github.com/dnsxmrs/power-track/commit/5171aeff811a89da3d11b25a4e148c05c79d5ac4))
+
 # [1.9.0](https://github.com/dnsxmrs/power-track/compare/v1.8.0...v1.9.0) (2026-05-13)
 
 
