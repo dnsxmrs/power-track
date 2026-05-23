@@ -1,175 +1,110 @@
-'use client';
-
-import { motion } from 'framer-motion';
-import { SlidersIcon, BellIcon, UserIcon, SaveIcon } from 'lucide-react';
+import { getSettings } from '@/app/_actions/settings/getsettings';
+import { createSettings } from '@/app/_actions/settings/createsettings';
+import { updateSettings } from '@/app/_actions/settings/updatesettings';
 import { GlassCard } from '../../components/GlassCard';
+import { StatusBadge } from '../../components/StatusBadge';
 
-export default function SettingsPage() {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
-  };
+function formatCurrency(value: number): string {
+	return new Intl.NumberFormat('en-PH', {
+		style: 'currency',
+		currency: 'PHP',
+		maximumFractionDigits: 2,
+	}).format(value);
+}
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-  };
+interface Props {
+	searchParams: { [key: string]: string | string[] | undefined };
+}
 
-  return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="max-w-4xl mx-auto space-y-6 pb-12 p-6"
-    >
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white tracking-tight">Settings</h1>
-        <p className="text-slate-400 mt-1">Manage system preferences and alert thresholds.</p>
-      </div>
+export default async function SettingsPage({ searchParams }: Props) {
+	const error = searchParams.error as string | undefined;
 
-      <motion.div variants={itemVariants}>
-        <GlassCard>
-          <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-white/8">
-            <SlidersIcon className="w-5 h-5 text-[#00d4ff]" />
-            <h2 className="text-lg font-semibold text-white">Alert Thresholds</h2>
-          </div>
+	const settings = await getSettings();
+	const isCreating = !settings;
 
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Voltage Minimum (V)
-                </label>
-                <input
-                  type="number"
-                  defaultValue={210}
-                  className="glass-input w-full bg-white/4 border border-white/10 rounded-lg px-4 py-2 text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Voltage Maximum (V)
-                </label>
-                <input
-                  type="number"
-                  defaultValue={240}
-                  className="glass-input w-full bg-white/4 border border-white/10 rounded-lg px-4 py-2 text-white"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Global Power Warning Threshold (kW)
-              </label>
-              <input
-                type="number"
-                defaultValue={40}
-                className="glass-input w-full bg-white/4 border border-white/10 rounded-lg px-4 py-2 text-white"
-              />
-              <p className="text-xs text-slate-500 mt-2">
-                Alerts will trigger when total consumption exceeds this value.
-              </p>
-            </div>
-          </div>
-        </GlassCard>
-      </motion.div>
+	return (
+		<div className="max-w-3xl mx-auto space-y-6 pb-12 p-6">
+			{error && (
+				<div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-sm text-red-400">
+					{error}
+				</div>
+			)}
+			<div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
+				<div>
+					<h1 className="text-3xl font-bold text-white tracking-tight">Settings</h1>
+					<p className="text-slate-400 mt-1">Manage the electricity price used by admin reports.</p>
+				</div>
+				<StatusBadge status={isCreating ? 'warning' : 'normal'} label={isCreating ? 'Needs setup' : 'Configured'} />
+			</div>
 
-      <motion.div variants={itemVariants}>
-        <GlassCard>
-          <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-white/8">
-            <BellIcon className="w-5 h-5 text-indigo-400" />
-            <h2 className="text-lg font-semibold text-white">Notification Preferences</h2>
-          </div>
+			<GlassCard>
+				<div className="mb-6 pb-4 border-b border-white/8">
+					<h2 className="text-lg font-semibold text-white">Electricity Pricing</h2>
+					<p className="text-sm text-slate-400 mt-1">Store a single price per kilowatt-hour in pesos.</p>
+				</div>
 
-          <div className="space-y-4">
-            {[
-              {
-                label: 'Critical Alerts (Overload, Outage)',
-                desc: 'Immediate notification for severe issues',
-                email: true,
-                sms: true,
-              },
-              {
-                label: 'Warning Alerts (Thresholds reached)',
-                desc: 'Notifies when approaching limits',
-                email: true,
-                sms: false,
-              },
-              {
-                label: 'Weekly Reports',
-                desc: 'Summary of energy consumption',
-                email: true,
-                sms: false,
-              },
-            ].map((item, idx) => (
-              <div key={idx} className="flex items-start justify-between py-4 border-b border-white/5 last:border-0">
-                <div>
-                  <p className="text-sm font-medium text-white">{item.label}</p>
-                  <p className="text-xs text-slate-400 mt-1">{item.desc}</p>
-                </div>
-                <div className="flex gap-3 ml-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      defaultChecked={item.email}
-                      className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#00d4ff]"
-                    />
-                    <span className="text-xs text-slate-400">Email</span>
-                  </label>
-                  {item.sms && (
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        defaultChecked={item.sms}
-                        className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#00d4ff]"
-                      />
-                      <span className="text-xs text-slate-400">SMS</span>
-                    </label>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </GlassCard>
-      </motion.div>
-
-      <motion.div variants={itemVariants}>
-        <GlassCard>
-          <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-white/8">
-            <UserIcon className="w-5 h-5 text-emerald-400" />
-            <h2 className="text-lg font-semibold text-white">Account Settings</h2>
-          </div>
-
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
-              <input
-                type="text"
-                defaultValue="Admin User"
-                className="glass-input w-full bg-white/4 border border-white/10 rounded-lg px-4 py-2 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
-              <input
-                type="email"
-                defaultValue="admin@company.com"
-                className="glass-input w-full bg-white/4 border border-white/10 rounded-lg px-4 py-2 text-white"
-              />
-            </div>
-          </div>
-        </GlassCard>
-      </motion.div>
-
-      <motion.div variants={itemVariants} className="flex gap-3">
-        <button className="flex items-center gap-2 px-6 py-2 bg-[#00d4ff] hover:bg-[#00b8e6] text-white font-medium rounded-lg transition-colors">
-          <SaveIcon className="w-4 h-4" />
-          Save Changes
-        </button>
-        <button className="px-6 py-2 bg-white/5 hover:bg-white/10 text-slate-300 font-medium rounded-lg border border-white/10 transition-colors">
-          Cancel
-        </button>
-      </motion.div>
-    </motion.div>
-  );
+				{isCreating ? (
+					<form action={createSettings} className="space-y-6">
+						<div>
+							<label className="block text-sm font-medium text-slate-300 mb-2" htmlFor="pricePerKilowattHour">
+								Price per kWh (PHP)
+							</label>
+							<div className="inline-flex w-full items-center bg-white/4 border border-white/10 rounded-lg overflow-hidden">
+								<span className="px-3 text-slate-300 bg-transparent">₱</span>
+								<input
+									id="pricePerKilowattHour"
+									name="pricePerKilowattHour"
+									type="number"
+									step="0.01"
+									min="0"
+									required
+									placeholder="0.00"
+									className="glass-input flex-1 min-w-0 bg-transparent px-4 py-2 text-white outline-none"
+								/>
+								<span className="px-3 text-sm text-slate-400 whitespace-nowrap">/ kWh</span>
+							</div>
+						</div>
+						<button className="px-6 py-2 bg-[#00d4ff] hover:bg-[#00b8e6] text-white font-medium rounded-lg transition-colors" type="submit">
+							Create Settings
+						</button>
+					</form>
+				) : (
+					<form action={updateSettings.bind(null, settings.id)} className="space-y-6">
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+							<div>
+								<label className="block text-sm font-medium text-slate-300 mb-2" htmlFor="pricePerKilowattHour">
+									Price per kWh (PHP)
+								</label>
+								<div className="inline-flex w-full items-center bg-white/4 border border-white/10 rounded-lg overflow-hidden">
+									<span className="px-3 text-slate-300 bg-transparent">₱</span>
+									<input
+										id="pricePerKilowattHour"
+										name="pricePerKilowattHour"
+										type="number"
+										step="0.01"
+										min="0"
+										required
+										defaultValue={settings.pricePerKilowattHour}
+										className="glass-input flex-1 min-w-0 bg-transparent px-4 py-2 text-white outline-none"
+									/>
+									<span className="px-3 text-sm text-slate-400 whitespace-nowrap">/ kWh</span>
+								</div>
+							</div>
+							<div className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
+								<p className="font-medium text-white">Current value</p>
+								<p className="mt-1 text-slate-400">{formatCurrency(settings.pricePerKilowattHour)} per kWh</p>
+								<div className="mt-3 text-xs text-slate-500">
+									<p>Example estimate:</p>
+									<p className="font-medium mt-1">100 kWh = {formatCurrency(settings.pricePerKilowattHour * 100)}</p>
+								</div>
+							</div>
+						</div>
+						<button className="px-6 py-2 bg-[#00d4ff] hover:bg-[#00b8e6] text-white font-medium rounded-lg transition-colors" type="submit">
+							Save Changes
+						</button>
+					</form>
+				)}
+			</GlassCard>
+		</div>
+	);
 }

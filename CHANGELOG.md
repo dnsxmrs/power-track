@@ -1,3 +1,31 @@
+# [1.10.0-beta.4](https://github.com/dnsxmrs/power-track/compare/v1.10.0-beta.3...v1.10.0-beta.4) (2026-05-23)
+
+
+### Features
+
+* **sidebar:** enhance user display and hide non-functional pages ([d4b015c](https://github.com/dnsxmrs/power-track/commit/d4b015c48b0769b17b227b9cf7a8062c35660852))
+
+# [1.10.0-beta.3](https://github.com/dnsxmrs/power-track/compare/v1.10.0-beta.2...v1.10.0-beta.3) (2026-05-23)
+
+
+### Features
+
+* **settings:** update currency formatting and enhance price input display ([8ae9263](https://github.com/dnsxmrs/power-track/commit/8ae9263ce03bcb6f5ec59cc084cd941948397e8d))
+
+# [1.10.0-beta.2](https://github.com/dnsxmrs/power-track/compare/v1.10.0-beta.1...v1.10.0-beta.2) (2026-05-23)
+
+
+### Features
+
+* **settings:** add settings management with create and update functionality ([eedb9af](https://github.com/dnsxmrs/power-track/commit/eedb9af9e7154b2de4c2fa5f7ae4af893e80169c))
+
+# [1.10.0-beta.1](https://github.com/dnsxmrs/power-track/compare/v1.9.0...v1.10.0-beta.1) (2026-05-18)
+
+
+### Features
+
+* **dashboard:** refactor dashboard components and implement lazy loading for performance optimization ([5171aef](https://github.com/dnsxmrs/power-track/commit/5171aeff811a89da3d11b25a4e148c05c79d5ac4))
+
 # [1.9.0](https://github.com/dnsxmrs/power-track/compare/v1.8.0...v1.9.0) (2026-05-13)
 
 

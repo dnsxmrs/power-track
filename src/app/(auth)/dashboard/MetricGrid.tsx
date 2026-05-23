@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { GlassCard } from '@/app/components/GlassCard';
 import { StatusBadge } from '@/app/components/StatusBadge';
 import type { StatusType } from '@/app/types/status';
+import { useDashboardContext } from './DashboardDataProvider';
 
 interface Metric {
     title: string;
@@ -53,11 +54,50 @@ function MetricTile({ metric }: { metric: Metric }) {
     );
 }
 
-export function MetricGrid({ metrics }: { metrics: Metric[] }) {
+export function MetricGrid() {
     const itemVariants = {
         hidden: { opacity: 0, y: 20 },
         visible: { opacity: 1, y: 0 },
     };
+
+    const { dashboard } = useDashboardContext();
+
+    if (dashboard.status === 'loading') {
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6" aria-hidden="true">
+                {Array.from({ length: 4 }).map((_, index) => (
+                    <div key={index} className="glass-panel flex h-full flex-col p-6 rounded-2xl border border-white/8">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <div className="h-4 w-24 rounded bg-white/10 animate-pulse" />
+                                <div className="mt-3 flex items-baseline gap-2">
+                                    <div className="h-8 w-20 rounded bg-white/10 animate-pulse" />
+                                </div>
+                            </div>
+                            <div className="h-6 w-16 rounded-full bg-white/10 animate-pulse" />
+                        </div>
+                        <div className="mt-5 flex items-center justify-start border-t border-white/5 pt-4">
+                            <div className="h-3 w-32 rounded bg-white/10 animate-pulse" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
+    if (dashboard.status === 'error') {
+        return (
+            <div className="max-w-7xl mx-auto">
+                <GlassCard>
+                    <h2 className="text-base font-semibold text-white">Dashboard unavailable</h2>
+                    <p className="mt-2 text-sm text-slate-400">{dashboard.error}</p>
+                </GlassCard>
+            </div>
+        );
+    }
+
+    const metrics = dashboard.data.metrics;
+
 
     return (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-4">
