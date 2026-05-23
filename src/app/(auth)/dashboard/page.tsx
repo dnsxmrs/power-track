@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { ClockIcon } from 'lucide-react';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
+import { DashboardDataProvider } from './DashboardDataProvider';
 
 export const metadata: Metadata = {
     title: 'Dashboard | PowerTrack',
@@ -83,19 +84,21 @@ export default async function DashboardPage() {
                 </div>
             </div>
 
-            {/* Metrics Section */}
-            <section aria-label="Key Performance Indicators">
-                <Suspense fallback={<MetricsCardsSkeleton />}>
-                    <MetricsCards />
-                </Suspense>
-            </section>
+            <DashboardDataProvider>
+                {/* Metrics Section */}
+                <section aria-label="Key Performance Indicators">
+                    <Suspense fallback={<MetricsCardsSkeleton />}>
+                        <MetricsCards />
+                    </Suspense>
+                </section>
 
-            {/* Coverage card */}
-            <section aria-label="Data Coverage">
-                <Suspense fallback={<CoverageCardsSkeleton />}>
-                    <CoverageCards />
-                </Suspense>
-            </section>
+                {/* Coverage card */}
+                <section aria-label="Data Coverage">
+                    <Suspense fallback={<CoverageCardsSkeleton />}>
+                        <CoverageCards />
+                    </Suspense>
+                </section>
+            </DashboardDataProvider>
         </div>
     );
 }

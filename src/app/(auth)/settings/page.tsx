@@ -13,11 +13,10 @@ function formatCurrency(value: number): string {
 }
 
 interface Props {
-	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+	searchParams: { [key: string]: string | string[] | undefined };
 }
 
-export default async function SettingsPage(props: Props) {
-	const searchParams = await props.searchParams;
+export default async function SettingsPage({ searchParams }: Props) {
 	const error = searchParams.error as string | undefined;
 
 	const settings = await getSettings();

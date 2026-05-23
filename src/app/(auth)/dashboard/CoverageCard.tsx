@@ -1,10 +1,10 @@
 'use client';
 
 import { GlassCard } from '@/app/components/GlassCard';
-import { useDashboardData } from './useDashboardData';
+import { useDashboardContext } from './DashboardDataProvider';
 
 export function CoverageCard() {
-    const { dashboard } = useDashboardData();
+    const { dashboard } = useDashboardContext();
 
     if (dashboard.status === 'loading') {
         return (

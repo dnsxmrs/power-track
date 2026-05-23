@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { getDashboardData } from '@/app/_actions/dashboard';
 import type { DashboardData } from '@/app/types/dashboard';
