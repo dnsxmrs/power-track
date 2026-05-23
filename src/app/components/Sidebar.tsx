@@ -29,6 +29,10 @@ const NAV_ITEMS = [
   { id: 'settings' as PageType, label: 'Settings', icon: SettingsIcon, href: '/settings' },
 ] as const;
 
+// Pages that are not yet functional (mocked) and should be hidden from the nav.
+// Update this set to show/hide pages as features are implemented.
+const HIDDEN_PAGES = new Set<PageType>(['devices', 'alerts', 'branches', 'reports']);
+
 function getActivePage(pathname: string): PageType {
   for (const item of NAV_ITEMS) {
     if (pathname.startsWith(item.href)) return item.id;
@@ -41,8 +45,19 @@ export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: session } = authClient.useSession();
 
   const activePage = getActivePage(pathname);
+  const currentUser = session?.user;
+  const displayName = currentUser?.name?.trim() || currentUser?.email?.split('@')[0] || 'Account';
+  const displayEmail = currentUser?.email || 'Signed in';
+  const initials =
+    displayName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(part => part[0]?.toUpperCase() ?? '')
+      .join('') || 'A';
 
   const handleNavigate = (href: string) => {
     router.push(href);
@@ -116,7 +131,7 @@ export function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 px-4 space-y-2">
-          {NAV_ITEMS.map(item => {
+          {NAV_ITEMS.filter(item => !HIDDEN_PAGES.has(item.id)).map(item => {
             const isActive = activePage === item.id;
             const Icon = item.icon;
             return (
@@ -156,8 +171,8 @@ export function Sidebar() {
         {/* User / Logout */}
         <div className="p-4 mt-auto border-t border-white/8 overflow-hidden">
           <div className={`flex items-center p-3 rounded-xl bg-white/2 border border-white/5 transition-all duration-300 ${collapsed ? 'justify-center' : ''}`}>
-            <div className="w-10 h-10 shrink-0 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-inner">
-              AD
+            <div className="w-10 h-10 shrink-0 rounded-full bg-linear-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white font-bold shadow-inner">
+              {initials}
             </div>
             <AnimatePresence initial={false}>
               {!collapsed && (
@@ -168,8 +183,8 @@ export function Sidebar() {
                   transition={{ duration: 0.2, ease: 'easeOut' }}
                   className="ml-3 flex-1 overflow-hidden whitespace-nowrap"
                 >
-                  <p className="text-sm font-medium text-white truncate">Admin User</p>
-                  <p className="text-xs text-slate-500 truncate">admin@powertrack.io</p>
+                  <p className="text-sm font-medium text-white truncate">{displayName}</p>
+                  <p className="text-xs text-slate-500 truncate">{displayEmail}</p>
                 </motion.div>
               )}
             </AnimatePresence>
