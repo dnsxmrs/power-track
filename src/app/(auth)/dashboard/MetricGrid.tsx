@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { GlassCard } from '@/app/components/GlassCard';
 import { StatusBadge } from '@/app/components/StatusBadge';
 import type { StatusType } from '@/app/types/status';
-import { useDashboardData } from './useDashboardData';
+import { useDashboardContext } from './DashboardDataProvider';
 
 interface Metric {
     title: string;
@@ -60,7 +60,7 @@ export function MetricGrid() {
         visible: { opacity: 1, y: 0 },
     };
 
-    const { dashboard } = useDashboardData();
+    const { dashboard } = useDashboardContext();
 
     if (dashboard.status === 'loading') {
         return (

@@ -24,13 +24,13 @@ export async function createSettings(formData: FormData): Promise<never> {
 	}
 
 	const parsed = parsePricePerKilowattHour(formData);
-	if (typeof parsed === 'string') {
-		redirect(`/settings?error=${encodeURIComponent(parsed)}`);
+	if (!parsed.ok) {
+		redirect(`/settings?error=${encodeURIComponent(parsed.error)}`);
 	}
 
 	await prisma.settings.create({
 		data: {
-			pricePerKilowattHour: parsed,
+			pricePerKilowattHour: parsed.value,
 		},
 	});
 
