@@ -5,22 +5,13 @@ import { GlassCard } from '../../components/GlassCard';
 import { StatusBadge } from '../../components/StatusBadge';
 
 function formatCurrency(value: number): string {
-	return new Intl.NumberFormat('es-PH', {
+	return new Intl.NumberFormat('en-PH', {
 		style: 'currency',
 		currency: 'PHP',
 		maximumFractionDigits: 2,
 	}).format(value);
 }
 
-function formatDate(value: Date): string {
-	return new Intl.DateTimeFormat('en-US', {
-		month: 'short',
-		day: 'numeric',
-		year: 'numeric',
-		hour: 'numeric',
-		minute: '2-digit',
-	}).format(value);
-}
 
 export default async function SettingsPage() {
 	const settings = await getSettings();
@@ -48,16 +39,20 @@ export default async function SettingsPage() {
 							<label className="block text-sm font-medium text-slate-300 mb-2" htmlFor="pricePerKilowattHour">
 								Price per kWh (PHP)
 							</label>
-							<input
-								id="pricePerKilowattHour"
-								name="pricePerKilowattHour"
-								type="number"
-								step="0.01"
-								min="0"
-								required
-								placeholder="0.00"
-								className="glass-input w-full bg-white/4 border border-white/10 rounded-lg px-4 py-2 text-white"
-							/>
+							<div className="inline-flex w-full items-center bg-white/4 border border-white/10 rounded-lg overflow-hidden">
+								<span className="px-3 text-slate-300 bg-transparent">₱</span>
+								<input
+									id="pricePerKilowattHour"
+									name="pricePerKilowattHour"
+									type="number"
+									step="0.01"
+									min="0"
+									required
+									placeholder="0.00"
+									className="glass-input flex-1 min-w-0 bg-transparent px-4 py-2 text-white outline-none"
+								/>
+								<span className="px-3 text-sm text-slate-400 whitespace-nowrap">/ kWh</span>
+							</div>
 						</div>
 						<button className="px-6 py-2 bg-[#00d4ff] hover:bg-[#00b8e6] text-white font-medium rounded-lg transition-colors" type="submit">
 							Create Settings
@@ -70,22 +65,28 @@ export default async function SettingsPage() {
 								<label className="block text-sm font-medium text-slate-300 mb-2" htmlFor="pricePerKilowattHour">
 									Price per kWh (PHP)
 								</label>
-								<input
-									id="pricePerKilowattHour"
-									name="pricePerKilowattHour"
-									type="number"
-									step="0.01"
-									min="0"
-									required
-									defaultValue={settings.pricePerKilowattHour}
-									className="glass-input w-full bg-white/4 border border-white/10 rounded-lg px-4 py-2 text-white"
-								/>
+								<div className="inline-flex w-full items-center bg-white/4 border border-white/10 rounded-lg overflow-hidden">
+									<span className="px-3 text-slate-300 bg-transparent">₱</span>
+									<input
+										id="pricePerKilowattHour"
+										name="pricePerKilowattHour"
+										type="number"
+										step="0.01"
+										min="0"
+										required
+										defaultValue={settings.pricePerKilowattHour}
+										className="glass-input flex-1 min-w-0 bg-transparent px-4 py-2 text-white outline-none"
+									/>
+									<span className="px-3 text-sm text-slate-400 whitespace-nowrap">/ kWh</span>
+								</div>
 							</div>
 							<div className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
 								<p className="font-medium text-white">Current value</p>
 								<p className="mt-1 text-slate-400">{formatCurrency(settings.pricePerKilowattHour)} per kWh</p>
-								<p className="mt-3 text-xs text-slate-500">Created {formatDate(settings.createdAt)}</p>
-								<p className="text-xs text-slate-500">Updated {formatDate(settings.updatedAt)}</p>
+								<div className="mt-3 text-xs text-slate-500">
+									<p>Example estimate:</p>
+									<p className="font-medium mt-1">100 kWh = {formatCurrency(settings.pricePerKilowattHour * 100)}</p>
+								</div>
 							</div>
 						</div>
 						<button className="px-6 py-2 bg-[#00d4ff] hover:bg-[#00b8e6] text-white font-medium rounded-lg transition-colors" type="submit">
