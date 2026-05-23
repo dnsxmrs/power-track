@@ -12,13 +12,24 @@ function formatCurrency(value: number): string {
 	}).format(value);
 }
 
+interface Props {
+	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
 
-export default async function SettingsPage() {
+export default async function SettingsPage(props: Props) {
+	const searchParams = await props.searchParams;
+	const error = searchParams.error as string | undefined;
+
 	const settings = await getSettings();
 	const isCreating = !settings;
 
 	return (
 		<div className="max-w-3xl mx-auto space-y-6 pb-12 p-6">
+			{error && (
+				<div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-sm text-red-400">
+					{error}
+				</div>
+			)}
 			<div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
 				<div>
 					<h1 className="text-3xl font-bold text-white tracking-tight">Settings</h1>

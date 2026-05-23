@@ -1,58 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { getDashboardData } from '@/app/_actions/dashboard';
-import { Skeleton } from '@/app/components/Skeleton';
 import { GlassCard } from '@/app/components/GlassCard';
-import type { DashboardData } from '@/app/types/dashboard';
-
-type DashboardDataState =
-    | {
-        status: 'loading';
-        data: null;
-        error: null;
-    }
-    | {
-        status: 'error';
-        data: null;
-        error: string;
-    }
-    | {
-        status: 'success';
-        data: DashboardData;
-        error: null;
-    };
+import { useDashboardData } from './useDashboardData';
 
 export function CoverageCard() {
-    const [dashboard, setDashboard] = useState<DashboardDataState>({
-        status: 'loading',
-        data: null,
-        error: null,
-    });
-
-    useEffect(() => {
-        let cancelled = false;
-
-        async function load() {
-            try {
-                const data = await getDashboardData();
-                if (!cancelled) {
-                    setDashboard({ status: 'success', data, error: null });
-                }
-            } catch (err) {
-                if (!cancelled) {
-                    const message = err instanceof Error ? err.message : 'Unable to load dashboard telemetry right now.';
-                    setDashboard({ status: 'error', data: null, error: message });
-                }
-            }
-        }
-
-        void load();
-
-        return () => {
-            cancelled = true;
-        };
-    }, []);
+    const { dashboard } = useDashboardData();
 
     if (dashboard.status === 'loading') {
         return (

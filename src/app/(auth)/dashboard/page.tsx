@@ -1,8 +1,7 @@
 import { Metadata } from 'next';
 import { ClockIcon } from 'lucide-react';
-import { lazy, Suspense } from 'react';
-// import { MetricGrid } from './MetricGrid'; // first component
-// import { CoverageCard } from './CoverageCard'; //second component
+import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
 
 export const metadata: Metadata = {
     title: 'Dashboard | PowerTrack',
@@ -10,15 +9,9 @@ export const metadata: Metadata = {
 };
 
 // any components for rendering dashboard metrics that rely on client-side interactivity or data fetching should be imported dynamically with suspense fallback to ensure the main dashboard page remains performant and responsive.
-const MetricsCards = lazy(async () => {
-    const imported = await import('./MetricGrid');
-    return { default: imported.MetricGrid };
-});
+const MetricsCards = dynamic(() => import('./MetricGrid').then(m => m.MetricGrid));
 
-const CoverageCards = lazy(async () => {
-    const imported = await import('./CoverageCard');
-    return { default: imported.CoverageCard };
-});
+const CoverageCards = dynamic(() => import('./CoverageCard').then(m => m.CoverageCard));
 
 // skeleton for each component above
 function MetricsCardsSkeleton() {
@@ -27,7 +20,7 @@ function MetricsCardsSkeleton() {
             {Array.from({ length: 4 }).map((_, index) => (
                 <div
                     key={`metric-skeleton-${index}`}
-                    className="glass-panel rounded-2xl p-6 h-[138px] border border-white/8"
+                    className="glass-panel rounded-2xl p-6 h-34.5 border border-white/8"
                 >
                     <div className="flex justify-between items-start mb-4">
                         <div className="h-4 w-24 rounded bg-white/10 animate-pulse" />
@@ -98,14 +91,11 @@ export default async function DashboardPage() {
             </section>
 
             {/* Coverage card */}
-            <section aria-label="Key Performance Indicators">
+            <section aria-label="Data Coverage">
                 <Suspense fallback={<CoverageCardsSkeleton />}>
                     <CoverageCards />
                 </Suspense>
             </section>
-
-            {/* Middle Section: Chart & Status */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" />
         </div>
     );
 }
