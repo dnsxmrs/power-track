@@ -1,3 +1,10 @@
+# [1.10.0-beta.2](https://github.com/dnsxmrs/power-track/compare/v1.10.0-beta.1...v1.10.0-beta.2) (2026-05-23)
+
+
+### Features
+
+* **settings:** add settings management with create and update functionality ([eedb9af](https://github.com/dnsxmrs/power-track/commit/eedb9af9e7154b2de4c2fa5f7ae4af893e80169c))
+
 # [1.10.0-beta.1](https://github.com/dnsxmrs/power-track/compare/v1.9.0...v1.10.0-beta.1) (2026-05-18)
 
 
