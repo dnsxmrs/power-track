@@ -111,3 +111,12 @@ model RequestLog {
   @@index([createdAt])
   @@map("request_log")
 }
+
+model Settings {
+  id                   String   @id @default(cuid())
+  pricePerKilowattHour Float
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("settings")
+}
