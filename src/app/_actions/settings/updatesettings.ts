@@ -16,14 +16,14 @@ export async function updateSettings(settingsId: string, formData: FormData): Pr
 	}
 
 	const parsed = parsePricePerKilowattHour(formData);
-	if (typeof parsed === 'string') {
-		redirect(`/settings?error=${encodeURIComponent(parsed)}`);
+	if (!parsed.ok) {
+		redirect(`/settings?error=${encodeURIComponent(parsed.error)}`);
 	}
 
 	await prisma.settings.update({
 		where: { id: settingsId },
 		data: {
-			pricePerKilowattHour: parsed,
+			pricePerKilowattHour: parsed.value,
 		},
 	});
 
