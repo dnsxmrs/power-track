@@ -1,3 +1,10 @@
+# [1.10.0-beta.3](https://github.com/dnsxmrs/power-track/compare/v1.10.0-beta.2...v1.10.0-beta.3) (2026-05-23)
+
+
+### Features
+
+* **settings:** update currency formatting and enhance price input display ([8ae9263](https://github.com/dnsxmrs/power-track/commit/8ae9263ce03bcb6f5ec59cc084cd941948397e8d))
+
 # [1.10.0-beta.2](https://github.com/dnsxmrs/power-track/compare/v1.10.0-beta.1...v1.10.0-beta.2) (2026-05-23)
 
 
