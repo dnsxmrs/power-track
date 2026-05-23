@@ -1,3 +1,10 @@
+# [1.10.0-beta.4](https://github.com/dnsxmrs/power-track/compare/v1.10.0-beta.3...v1.10.0-beta.4) (2026-05-23)
+
+
+### Features
+
+* **sidebar:** enhance user display and hide non-functional pages ([d4b015c](https://github.com/dnsxmrs/power-track/commit/d4b015c48b0769b17b227b9cf7a8062c35660852))
+
 # [1.10.0-beta.3](https://github.com/dnsxmrs/power-track/compare/v1.10.0-beta.2...v1.10.0-beta.3) (2026-05-23)
 
 
