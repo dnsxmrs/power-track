@@ -12,7 +12,7 @@ export interface CreateAccountInput {
 	name: string;
 	email: string;
 	phoneNumber: string;
-	role: 'admin' | 'superadmin' | 'client';
+	role: 'ADMIN' | 'SUPERADMIN' | 'CLIENT';
 	twoFactorEnabled: boolean;
 	applicationId?: string | null;
 }
@@ -32,7 +32,7 @@ export interface UserManagementItem {
 	name: string;
 	email: string;
 	phoneNumber: string;
-	role: 'admin' | 'superadmin' | 'client';
+	role: 'ADMIN' | 'SUPERADMIN' | 'CLIENT';
 	twoFactorEnabled: boolean;
 	emailVerified: boolean;
 	banned: boolean;
@@ -94,10 +94,10 @@ function generateTemporaryPassword(length = 14): string {
 	return password;
 }
 
-function normalizeRole(role: string | null | undefined): 'admin' | 'superadmin' | 'client' {
-	if (role === 'admin') return 'admin';
-	if (role === 'superadmin') return 'superadmin';
-	return 'client';
+function normalizeRole(role: string | null | undefined): 'ADMIN' | 'SUPERADMIN' | 'CLIENT' {
+	if (role === 'ADMIN' || role === 'admin') return 'ADMIN';
+	if (role === 'SUPERADMIN' || role === 'superadmin') return 'SUPERADMIN';
+	return 'CLIENT';
 }
 
 function getBranchSnapshot(application: any) {
@@ -535,7 +535,7 @@ export async function reactivateUserAccount(userId: string, input: CreateAccount
 export interface UpdateAccountInput {
 	name: string;
 	phoneNumber: string;
-	role: 'admin' | 'superadmin' | 'client';
+	role: 'ADMIN' | 'SUPERADMIN' | 'CLIENT';
 	twoFactorEnabled: boolean;
 }
 

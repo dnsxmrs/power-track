@@ -17,7 +17,7 @@ export interface UserFormData {
   name: string;
   email: string;
   phoneNumber: string;
-  role: 'admin' | 'superadmin' | 'client';
+  role: 'ADMIN' | 'SUPERADMIN' | 'CLIENT';
   twoFactorEnabled: boolean;
   applicationId?: string | null;
 }
@@ -33,7 +33,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
     name: '',
     email: '',
     phoneNumber: '',
-    role: 'admin',
+    role: 'ADMIN',
     twoFactorEnabled: false,
     applicationId: null,
   });
@@ -120,7 +120,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
       name: '',
       email: '',
       phoneNumber: '',
-      role: 'admin',
+      role: 'ADMIN',
       twoFactorEnabled: false,
       applicationId: null,
     });
@@ -166,7 +166,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
     const phoneValidation = validatePhoneDigits(phoneDigits);
     if (!phoneValidation.valid) newErrors.phoneNumber = phoneValidation.error || '';
 
-    if (formData.role === 'client' && !formData.applicationId) {
+    if (formData.role === 'CLIENT' && !formData.applicationId) {
       newErrors.applicationId = 'Select an approved application to create a client account.';
     }
 
@@ -178,10 +178,10 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
     setFormData(prev => ({
       ...prev,
       role,
-      applicationId: role === 'client' ? prev.applicationId : null,
+      applicationId: role === 'CLIENT' ? prev.applicationId : null,
     }));
 
-    if (role !== 'client') {
+    if (role !== 'CLIENT') {
       setSelectedApplicationId('');
       setApplicationSearchQuery('');
       setErrors(prev => {
@@ -256,7 +256,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
     }
   };
 
-  const showAccountFields = formData.role !== 'client' || Boolean(selectedApplication);
+  const showAccountFields = formData.role !== 'CLIENT' || Boolean(selectedApplication);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -290,7 +290,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
         name: '',
         email: '',
         phoneNumber: '',
-        role: 'admin',
+        role: 'ADMIN',
         twoFactorEnabled: false,
         applicationId: null,
       });
@@ -355,9 +355,9 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
                 </div>
                 <div className="grid gap-3 md:grid-cols-3">
                   {[
-                    { value: 'admin', label: 'Admin', description: 'Standard internal admin access', icon: Shield },
-                    { value: 'superadmin', label: 'Super Admin', description: 'Full administrative access', icon: ShieldCheck },
-                    { value: 'client', label: 'Client', description: 'Provision from an approved application', icon: UserCircle2 },
+                    { value: 'ADMIN', label: 'Admin', description: 'Standard internal admin access', icon: Shield },
+                    { value: 'SUPERADMIN', label: 'Super Admin', description: 'Full administrative access', icon: ShieldCheck },
+                    { value: 'CLIENT', label: 'Client', description: 'Provision from an approved application', icon: UserCircle2 },
                   ].map(option => {
                     const Icon = option.icon;
                     const active = formData.role === option.value;
@@ -380,7 +380,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
                 </div>
               </div>
 
-              {formData.role === 'client' && (
+              {formData.role === 'CLIENT' && (
                 <div className="mb-5 space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4">
                   <div className="flex items-center justify-between gap-3 flex-wrap">
                     <div>
@@ -576,7 +576,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
                     </span>
                   </label>
                   <div className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white">
-                    {formData.role === 'admin' ? 'Admin' : formData.role === 'superadmin' ? 'Super Admin' : 'Client'}
+                    {formData.role === 'ADMIN' ? 'Admin' : formData.role === 'SUPERADMIN' ? 'Super Admin' : 'Client'}
                   </div>
                 </div>
 
