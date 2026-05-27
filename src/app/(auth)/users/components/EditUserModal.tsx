@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Mail, User, Shield, Phone, CheckCircle, AlertCircle, Lock } from 'lucide-react';
 import { GlassCard } from '../../../components/GlassCard';
@@ -17,7 +17,7 @@ interface EditUserModalProps {
 export interface EditUserData {
   name: string;
   phoneNumber: string;
-  role: 'admin' | 'superadmin';
+  role: 'admin' | 'superadmin' | 'client';
   twoFactorEnabled: boolean;
 }
 
@@ -28,7 +28,7 @@ export function EditUserModal({ isOpen, user, onClose, onSubmit }: EditUserModal
   const [formData, setFormData] = useState<EditUserData>({
     name: user?.name || '',
     phoneNumber: user?.phoneNumber || '',
-    role: user?.role === 'superadmin' ? 'superadmin' : 'admin',
+    role: user?.role === 'superadmin' ? 'superadmin' : user?.role === 'client' ? 'client' : 'admin',
     twoFactorEnabled: user?.twoFactorEnabled || false,
   });
 
@@ -39,6 +39,21 @@ export function EditUserModal({ isOpen, user, onClose, onSubmit }: EditUserModal
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    setFormData({
+      name: user.name,
+      phoneNumber: user.phoneNumber || '',
+      role: user.role === 'superadmin' ? 'superadmin' : user.role === 'client' ? 'client' : 'admin',
+      twoFactorEnabled: user.twoFactorEnabled,
+    });
+    setPhoneDigits(user.phoneNumber ? user.phoneNumber.replace(/\D/g, '').slice(-10) : '');
+    setErrors({});
+  }, [user]);
 
   const handlePhoneDigitChange = (value: string) => {
     const digits = value.replace(/\D/g, '').slice(0, 10);
@@ -231,7 +246,7 @@ export function EditUserModal({ isOpen, user, onClose, onSubmit }: EditUserModal
                     </label>
                     <select
                       value={formData.role}
-                      onChange={e => setFormData(prev => ({ ...prev, role: e.target.value as 'admin' | 'superadmin' }))}
+                      onChange={e => setFormData(prev => ({ ...prev, role: e.target.value as 'admin' | 'superadmin' | 'client' }))}
                       className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all cursor-pointer"
                     >
                       <option value="admin" className="bg-slate-900">
@@ -240,8 +255,20 @@ export function EditUserModal({ isOpen, user, onClose, onSubmit }: EditUserModal
                       <option value="superadmin" className="bg-slate-900">
                         Super Admin
                       </option>
+                      <option value="client" className="bg-slate-900">
+                        Client
+                      </option>
                     </select>
                   </div>
+
+                  {user.role === 'client' && user.clientApplication && (
+                    <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-4">
+                      <p className="text-sm font-semibold text-white">Client subscription</p>
+                      <p className="mt-1 text-xs text-cyan-100/80">{user.clientApplication.ticketNumber} · {user.clientApplication.plan.name}</p>
+                      <p className="mt-1 text-xs text-cyan-100/80">{user.clientApplication.branch ? `${user.clientApplication.branch.name}${user.clientApplication.branch.city ? `, ${user.clientApplication.branch.city}` : ''}` : 'No branch snapshot available'}</p>
+                      <p className="mt-1 text-xs text-cyan-100/80">This user was provisioned from an approved application. Client linkage is managed during creation.</p>
+                    </div>
+                  )}
                 </div>
               )}
 

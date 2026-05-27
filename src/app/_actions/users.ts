@@ -12,8 +12,9 @@ export interface CreateAccountInput {
 	name: string;
 	email: string;
 	phoneNumber: string;
-	role: 'admin' | 'superadmin';
+	role: 'admin' | 'superadmin' | 'client';
 	twoFactorEnabled: boolean;
+	applicationId?: string | null;
 }
 
 export type ReactivateCandidate = {
@@ -40,7 +41,46 @@ export interface UserManagementItem {
 	lastActiveAt: string;
 	joinedLabel: string;
 	lastActiveLabel: string;
+	clientApplication?: {
+		id: string;
+		ticketNumber: string;
+		status: string;
+		submittedAt: string;
+		plan: {
+			id: string;
+			name: string;
+			slug: string;
+			monthlyPrice: number;
+			deviceCap: number;
+		};
+		branch: {
+			name: string;
+			city: string;
+			province: string;
+			address: string;
+			notes: string | null;
+		} | null;
+	} | null;
 }
+
+export type ApprovedClientApplicationCandidate = {
+	id: string;
+	ticketNumber: string;
+	fullName: string;
+	email: string;
+	phoneNumber: string;
+	planId: string;
+	planName: string;
+	planSlug: string;
+	planMonthlyPrice: number;
+	planDeviceCap: number;
+	branchName: string;
+	branchCity: string;
+	branchProvince: string;
+	branchAddress: string;
+	branchNotes: string | null;
+	submittedAt: string;
+};
 
 function generateTemporaryPassword(length = 14): string {
 	const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*';
@@ -58,6 +98,30 @@ function normalizeRole(role: string | null | undefined): 'admin' | 'superadmin' 
 	if (role === 'admin') return 'admin';
 	if (role === 'superadmin') return 'superadmin';
 	return 'client';
+}
+
+function getBranchSnapshot(application: any) {
+	const snapshot = Array.isArray(application.branchSnapshots) ? application.branchSnapshots[0] : null;
+
+	if (snapshot) {
+		return {
+			name: snapshot.name ?? application.branch?.name ?? '',
+			city: snapshot.city ?? application.branch?.city ?? '',
+			province: snapshot.province ?? application.branch?.province ?? '',
+			address: snapshot.address ?? application.branch?.address ?? '',
+			notes: snapshot.notes ?? application.branch?.notes ?? null,
+		};
+	}
+
+	return application.branch
+		? {
+			name: application.branch.name ?? '',
+			city: application.branch.city ?? '',
+			province: application.branch.province ?? '',
+			address: application.branch.address ?? '',
+			notes: application.branch.notes ?? null,
+		}
+		: null;
 }
 
 function formatRelativeTime(date: Date): string {
@@ -114,6 +178,33 @@ export async function fetchUsersForManagement(): Promise<UserManagementItem[]> {
 			banned: true,
 			createdAt: true,
 			updatedAt: true,
+			clientApplications: {
+				select: {
+					id: true,
+					ticketNumber: true,
+					status: true,
+					submittedAt: true,
+					plan: {
+						select: {
+							id: true,
+							name: true,
+							slug: true,
+							monthlyPrice: true,
+							deviceCap: true,
+						},
+					},
+					branch: {
+						select: {
+							name: true,
+							city: true,
+							province: true,
+							address: true,
+							notes: true,
+						},
+					},
+				},
+				take: 1,
+			},
 			sessions: {
 				select: {
 					createdAt: true,
@@ -134,6 +225,7 @@ export async function fetchUsersForManagement(): Promise<UserManagementItem[]> {
 		const latestSession = user.sessions[0];
 		const lastActiveDate = latestSession?.updatedAt ?? latestSession?.createdAt ?? user.updatedAt;
 		const joinedDate = user.createdAt;
+		const clientApplication = user.clientApplications[0];
 
 		return {
 			id: user.id,
@@ -149,6 +241,81 @@ export async function fetchUsersForManagement(): Promise<UserManagementItem[]> {
 			lastActiveAt: lastActiveDate.toISOString(),
 			joinedLabel: formatDateLabel(joinedDate),
 			lastActiveLabel: formatRelativeTime(lastActiveDate),
+			clientApplication: clientApplication
+				? {
+					id: clientApplication.id,
+					ticketNumber: clientApplication.ticketNumber,
+					status: clientApplication.status,
+					submittedAt: clientApplication.submittedAt.toISOString(),
+					plan: {
+						id: clientApplication.plan.id,
+						name: clientApplication.plan.name,
+						slug: clientApplication.plan.slug,
+						monthlyPrice: Number(clientApplication.plan.monthlyPrice),
+						deviceCap: Number(clientApplication.plan.deviceCap),
+					},
+					branch: getBranchSnapshot(clientApplication),
+				}
+				: null,
+		};
+	});
+}
+
+export async function fetchApprovedApplicationsForClientCreation(): Promise<ApprovedClientApplicationCandidate[]> {
+	const requestHeaders = await headers();
+	await requireAdminFromHeaders(requestHeaders);
+
+	const applications = await prisma.application.findMany({
+		where: { status: 'APPROVED', clientUserId: null },
+		select: {
+			id: true,
+			ticketNumber: true,
+			fullName: true,
+			email: true,
+			phoneNumber: true,
+			submittedAt: true,
+			plan: {
+				select: {
+					id: true,
+					name: true,
+					slug: true,
+					monthlyPrice: true,
+					deviceCap: true,
+				},
+			},
+			branch: {
+				select: {
+					name: true,
+					city: true,
+					province: true,
+					address: true,
+					notes: true,
+				},
+			},
+		},
+		orderBy: { submittedAt: 'desc' },
+	});
+
+	return applications.map(application => {
+		const branch = getBranchSnapshot(application) ?? { name: '', city: '', province: '', address: '', notes: null };
+
+		return {
+			id: application.id,
+			ticketNumber: application.ticketNumber,
+			fullName: application.fullName,
+			email: application.email,
+			phoneNumber: application.phoneNumber,
+			planId: application.plan.id,
+			planName: application.plan.name,
+			planSlug: application.plan.slug,
+			planMonthlyPrice: Number(application.plan.monthlyPrice),
+			planDeviceCap: Number(application.plan.deviceCap),
+			branchName: branch.name,
+			branchCity: branch.city,
+			branchProvince: branch.province,
+			branchAddress: branch.address,
+			branchNotes: branch.notes,
+			submittedAt: application.submittedAt.toISOString(),
 		};
 	});
 }
@@ -182,6 +349,74 @@ export async function createUserAccount(input: CreateAccountInput): Promise<Crea
 	await requireAdminFromHeaders(requestHeaders);
 
 	const { name, email, phoneNumber } = validateAndNormalizeCreateInput(input);
+	if (input.role === 'client' && !input.applicationId) {
+		throw new Error('Select an approved application for the client account.');
+	}
+	let approvedApplication: ApprovedClientApplicationCandidate | null = null;
+
+	if (input.role === 'client') {
+		if (!input.applicationId) {
+			throw new Error('Select an approved application for the client account.');
+		}
+
+		const application = await prisma.application.findFirst({
+			where: {
+				id: input.applicationId,
+				status: 'APPROVED',
+				clientUserId: null,
+			},
+			select: {
+				id: true,
+				ticketNumber: true,
+				fullName: true,
+				email: true,
+				phoneNumber: true,
+				submittedAt: true,
+				plan: {
+					select: {
+						id: true,
+						name: true,
+						slug: true,
+						monthlyPrice: true,
+						deviceCap: true,
+					},
+				},
+				branch: {
+					select: {
+						name: true,
+						city: true,
+						province: true,
+						address: true,
+						notes: true,
+					},
+				},
+			},
+		});
+
+		if (!application) {
+			throw new Error('Selected application is no longer available.');
+		}
+
+		const branch = getBranchSnapshot(application);
+		approvedApplication = {
+			id: application.id,
+			ticketNumber: application.ticketNumber,
+			fullName: application.fullName,
+			email: application.email,
+			phoneNumber: application.phoneNumber,
+			planId: application.plan.id,
+			planName: application.plan.name,
+			planSlug: application.plan.slug,
+			planMonthlyPrice: Number(application.plan.monthlyPrice),
+			planDeviceCap: Number(application.plan.deviceCap),
+			branchName: branch?.name ?? '',
+			branchCity: branch?.city ?? '',
+			branchProvince: branch?.province ?? '',
+			branchAddress: branch?.address ?? '',
+			branchNotes: branch?.notes ?? null,
+			submittedAt: application.submittedAt.toISOString(),
+		};
+	}
 
 	const password = generateTemporaryPassword();
 	const hashedPassword = await hashPassword(password);
@@ -216,6 +451,27 @@ export async function createUserAccount(input: CreateAccountInput): Promise<Crea
 			twoFactorEnabled: input.twoFactorEnabled,
 		},
 	});
+
+	if (input.role === 'client' && approvedApplication) {
+		await prisma.$transaction([
+			prisma.clientSubscription.create({
+				data: {
+					id: randomUUID(),
+					userId: created.user.id,
+					planId: approvedApplication.planId,
+					sourceApplicationId: approvedApplication.id,
+					deviceCap: approvedApplication.planDeviceCap,
+					monthlyPrice: approvedApplication.planMonthlyPrice,
+					status: 'active',
+					startedAt: new Date(),
+				},
+			}),
+			prisma.application.update({
+				where: { id: approvedApplication.id },
+				data: { clientUserId: created.user.id },
+			}),
+		]);
+	}
 
 	await prisma.account.create({
 		data: {
@@ -279,7 +535,7 @@ export async function reactivateUserAccount(userId: string, input: CreateAccount
 export interface UpdateAccountInput {
 	name: string;
 	phoneNumber: string;
-	role: 'admin' | 'superadmin';
+	role: 'admin' | 'superadmin' | 'client';
 	twoFactorEnabled: boolean;
 }
 
