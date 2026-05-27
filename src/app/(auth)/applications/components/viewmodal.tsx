@@ -57,6 +57,23 @@ export function ViewModal({ isOpen, onClose, application }: ViewModalProps) {
 							<span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">{application.planName}</span>
 						</div>
 
+						<div className="grid gap-4 md:grid-cols-3">
+							<div className="rounded-xl border border-white/10 bg-white/5 p-4">
+								<p className="text-xs uppercase tracking-[0.2em] text-slate-500">Plan limit</p>
+								<p className="mt-2 text-sm text-white">{application.planDeviceCap} devices max</p>
+								<p className="text-xs text-slate-400">PHP {application.planMonthlyPrice.toLocaleString()} / month</p>
+							</div>
+							<div className="rounded-xl border border-white/10 bg-white/5 p-4">
+								<p className="text-xs uppercase tracking-[0.2em] text-slate-500">Status note</p>
+								<p className="mt-2 text-sm text-white break-words">{application.statusReason ?? 'No review note yet'}</p>
+							</div>
+							<div className="rounded-xl border border-white/10 bg-white/5 p-4">
+								<p className="text-xs uppercase tracking-[0.2em] text-slate-500">Reviewed</p>
+								<p className="mt-2 text-sm text-white break-words">{application.reviewedByName ?? 'Pending review'}</p>
+								<p className="text-xs text-slate-400">{application.reviewedAt ? formatDateLabel(application.reviewedAt) : 'Not yet reviewed'}</p>
+							</div>
+						</div>
+
 						<div className="grid gap-4 md:grid-cols-2">
 							<GlassCard glowColor="cyan" className="p-4">
 								<p className="text-xs uppercase tracking-[0.2em] text-slate-500">Contact</p>
@@ -69,8 +86,8 @@ export function ViewModal({ isOpen, onClose, application }: ViewModalProps) {
 							<GlassCard glowColor="indigo" className="p-4">
 								<p className="text-xs uppercase tracking-[0.2em] text-slate-500">Coverage</p>
 								<div className="mt-3 space-y-2 text-sm text-slate-300">
-									<p className="flex items-start gap-2 break-words"><MapPinIcon size={14} className="mt-0.5 shrink-0 text-cyan-300" />{application.branch}</p>
-									<p>{application.city}</p>
+									<p className="flex items-start gap-2 break-words"><MapPinIcon size={14} className="mt-0.5 shrink-0 text-cyan-300" />{application.branchName || 'Unassigned branch'}</p>
+									<p>{application.branchCity || application.branchCode || 'No branch data'}</p>
 								</div>
 							</GlassCard>
 						</div>
@@ -93,10 +110,16 @@ export function ViewModal({ isOpen, onClose, application }: ViewModalProps) {
 						<div className="space-y-3">
 							<p className="text-xs uppercase tracking-[0.2em] text-slate-500">Documents</p>
 							<div className="flex flex-wrap gap-2">
-								{application.documents.map(documentName => (
-									<span key={documentName} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300 break-words">
-										{documentName}
-									</span>
+								{application.documents.map(document => (
+									<a
+										key={document.name}
+										href={document.url ?? '#'}
+										target={document.url ? '_blank' : undefined}
+										rel={document.url ? 'noreferrer' : undefined}
+										className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300 break-words"
+									>
+										{document.name}
+									</a>
 								))}
 							</div>
 						</div>

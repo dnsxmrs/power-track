@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ConfirmationModal } from './components/confirmationmodal';
 import {
@@ -19,15 +19,19 @@ import {
 	PhoneIcon,
 	SearchIcon,
 	SparklesIcon,
+	PlusIcon,
 	XCircleIcon,
 } from 'lucide-react';
+import { AddApplicationModal, type AddApplicationFormData } from './components/addapplicationmodal';
 import { ReviewModal, type ApplicationDecision } from './components/reviewmodal';
 import { ViewModal } from './components/viewmodal';
 import { GlassCard } from '../../components/GlassCard';
+import { addApplication, type CreateApplicationResult } from '@/app/_actions/application/addapplication';
+import { reviewApplication } from '@/app/_actions/application/reviewapplication';
 
 export type ApplicationStatus = 'submitted' | 'under_review' | 'approved' | 'rejected' | 'awaiting_downpayment' | 'active';
 type StatusFilter = ApplicationStatus | 'all';
-type PlanFilter = 'all' | 'starter' | 'growth' | 'enterprise';
+type PlanFilter = 'all' | string;
 
 export type ApplicationItem = {
 	id: string;
@@ -36,113 +40,22 @@ export type ApplicationItem = {
 	email: string;
 	phoneNumber: string;
 	planName: string;
-	planSlug: 'starter' | 'growth' | 'enterprise';
+	planSlug: string;
+	planMonthlyPrice: number;
+	planDeviceCap: number;
 	deviceCount: number;
-	branch: string;
-	city: string;
+	branchName: string;
+	branchCity: string;
+	branchCode: string;
 	status: ApplicationStatus;
 	submittedAt: string;
-	reviewedBy?: string;
-	reason?: string;
-	documents: string[];
+	updatedAt: string;
+	reviewedByName?: string | null;
+	reviewedAt?: string | null;
+	statusReason?: string | null;
+	specialRequirements?: string | null;
+	documents: Array<{ name: string; url: string | null; mimeType: string | null }>;
 };
-
-const APPLICATIONS: ApplicationItem[] = [
-	{
-		id: 'app-1',
-		ticketNumber: 'APP-2026-1048',
-		fullName: 'Maria Santos',
-		email: 'maria.santos@sunrisehub.ph',
-		phoneNumber: '+63 917 564 8821',
-		planName: 'Growth Plan',
-		planSlug: 'growth',
-		deviceCount: 18,
-		branch: 'Cebu Main Office',
-		city: 'Cebu City',
-		status: 'under_review',
-		submittedAt: '2026-05-26T08:20:00.000Z',
-		documents: ['Proof of Billing', 'Valid ID Front', 'Valid ID Back'],
-	},
-	{
-		id: 'app-2',
-		ticketNumber: 'APP-2026-1047',
-		fullName: 'Carlos Dela Cruz',
-		email: 'carlos.delacruz@northstarenergy.ph',
-		phoneNumber: '+63 918 223 1104',
-		planName: 'Enterprise Plan',
-		planSlug: 'enterprise',
-		deviceCount: 72,
-		branch: 'Quezon City Operations',
-		city: 'Quezon City',
-		status: 'awaiting_downpayment',
-		submittedAt: '2026-05-26T05:45:00.000Z',
-		reason: 'Approved pending downpayment confirmation.',
-		documents: ['Proof of Billing', 'Valid ID Front', 'Valid ID Back'],
-	},
-	{
-		id: 'app-3',
-		ticketNumber: 'APP-2026-1046',
-		fullName: 'Angela Reyes',
-		email: 'angela.reyes@greenfieldco.ph',
-		phoneNumber: '+63 912 741 9980',
-		planName: 'Starter Plan',
-		planSlug: 'starter',
-		deviceCount: 8,
-		branch: 'Davao Branch',
-		city: 'Davao City',
-		status: 'approved',
-		submittedAt: '2026-05-25T13:10:00.000Z',
-		reviewedBy: 'Admin User',
-		documents: ['Proof of Billing', 'Valid ID Front'],
-	},
-	{
-		id: 'app-4',
-		ticketNumber: 'APP-2026-1045',
-		fullName: 'Jorge Villanueva',
-		email: 'jorge.villanueva@sunridge.ph',
-		phoneNumber: '+63 905 410 6632',
-		planName: 'Growth Plan',
-		planSlug: 'growth',
-		deviceCount: 24,
-		branch: 'Bacolod Service Center',
-		city: 'Bacolod',
-		status: 'submitted',
-		submittedAt: '2026-05-25T09:30:00.000Z',
-		documents: ['Proof of Billing'],
-	},
-	{
-		id: 'app-5',
-		ticketNumber: 'APP-2026-1044',
-		fullName: 'Nadine Mercado',
-		email: 'nadine.mercado@harborline.co',
-		phoneNumber: '+63 919 230 4481',
-		planName: 'Enterprise Plan',
-		planSlug: 'enterprise',
-		deviceCount: 64,
-		branch: 'Iloilo Hub',
-		city: 'Iloilo City',
-		status: 'rejected',
-		submittedAt: '2026-05-24T16:05:00.000Z',
-		reason: 'Mismatch between billing name and applicant details.',
-		documents: ['Proof of Billing', 'Valid ID Front', 'Valid ID Back'],
-	},
-	{
-		id: 'app-6',
-		ticketNumber: 'APP-2026-1043',
-		fullName: 'Ramon Castillo',
-		email: 'ramon.castillo@bluepeak.ph',
-		phoneNumber: '+63 927 888 5512',
-		planName: 'Starter Plan',
-		planSlug: 'starter',
-		deviceCount: 12,
-		branch: 'Makati Branch Office',
-		city: 'Makati',
-		status: 'active',
-		submittedAt: '2026-05-24T10:25:00.000Z',
-		reviewedBy: 'Operations Lead',
-		documents: ['Proof of Billing', 'Valid ID Front', 'Valid ID Back'],
-	},
-];
 
 const STATUS_META: Record<ApplicationStatus, { label: string; className: string; icon: typeof CheckCircleIcon }> = {
 	submitted: {
@@ -176,13 +89,6 @@ const STATUS_META: Record<ApplicationStatus, { label: string; className: string;
 		icon: SparklesIcon,
 	},
 };
-
-const PLAN_FILTERS: Array<{ value: PlanFilter; label: string }> = [
-	{ value: 'all', label: 'All plans' },
-	{ value: 'starter', label: 'Starter' },
-	{ value: 'growth', label: 'Growth' },
-	{ value: 'enterprise', label: 'Enterprise' },
-];
 
 const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
 	{ value: 'all', label: 'All statuses' },
@@ -220,14 +126,23 @@ function formatPhoneNumber(phoneNumber: string): string {
 	return phoneNumber.replace(/\s+/g, ' ').trim();
 }
 
-function getPlanLabel(planSlug: ApplicationItem['planSlug']): string {
-	if (planSlug === 'starter') return 'Starter';
-	if (planSlug === 'growth') return 'Growth';
-	return 'Enterprise';
+function getPlanLabel(planSlug: string): string {
+ 	if (planSlug === 'starter') return 'Starter';
+ 	if (planSlug === 'growth') return 'Growth';
+ 	if (planSlug === 'enterprise') return 'Enterprise';
+ 	// fallback: capitalize
+ 	return planSlug ? planSlug.charAt(0).toUpperCase() + planSlug.slice(1) : '';
+}
+
+function getStatusLabel(status: ApplicationStatus): string {
+	return STATUS_META[status].label;
 }
 
 export default function ApplicationsPage() {
-	const [applications, setApplications] = useState<ApplicationItem[]>(APPLICATIONS);
+	const [applications, setApplications] = useState<ApplicationItem[]>([]);
+	const [planOptions, setPlanOptions] = useState<Array<{ slug: string; name: string }>>([]);
+	const [isLoadingApplications, setIsLoadingApplications] = useState(true);
+	const [loadError, setLoadError] = useState<string | null>(null);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 	const [planFilter, setPlanFilter] = useState<PlanFilter>('all');
@@ -235,8 +150,54 @@ export default function ApplicationsPage() {
 	const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 	const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 	const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+	const [isAddApplicationModalOpen, setIsAddApplicationModalOpen] = useState(false);
 	const [pendingDecision, setPendingDecision] = useState<ApplicationDecision | null>(null);
 	const [isApplyingReview, setIsApplyingReview] = useState(false);
+	const [isCreatingApplication, setIsCreatingApplication] = useState(false);
+
+	const planFilterOptions = useMemo(
+		() => [
+			{ value: 'all', label: 'All plans' },
+			...planOptions.map(option => ({ value: option.slug, label: option.name })),
+		],
+		[planOptions],
+	);
+
+	const loadApplications = async () => {
+		setIsLoadingApplications(true);
+		setLoadError(null);
+
+		try {
+			const [applicationsResponse, plansResponse] = await Promise.all([
+				fetch('/api/applications', { credentials: 'include' }),
+				fetch('/api/plans', { credentials: 'include' }),
+			]);
+
+			if (!applicationsResponse.ok) {
+				throw new Error('Failed to fetch applications.');
+			}
+
+			if (plansResponse.ok) {
+				const plans = await plansResponse.json();
+				setPlanOptions(Array.isArray(plans) ? plans.map((plan: any) => ({ slug: plan.slug, name: plan.name })) : []);
+			} else {
+				setPlanOptions([]);
+			}
+
+			const items = (await applicationsResponse.json()) as ApplicationItem[];
+			setApplications(Array.isArray(items) ? items : []);
+		} catch (error) {
+			setApplications([]);
+			setPlanOptions([]);
+			setLoadError(error instanceof Error ? error.message : 'Failed to load applications.');
+		} finally {
+			setIsLoadingApplications(false);
+		}
+	};
+
+	useEffect(() => {
+		void loadApplications();
+	}, []);
 
 	const filteredApplications = useMemo(() => {
 		const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -247,8 +208,9 @@ export default function ApplicationsPage() {
 				application.ticketNumber.toLowerCase().includes(normalizedQuery) ||
 				application.fullName.toLowerCase().includes(normalizedQuery) ||
 				application.email.toLowerCase().includes(normalizedQuery) ||
-				application.branch.toLowerCase().includes(normalizedQuery) ||
-				application.city.toLowerCase().includes(normalizedQuery);
+				application.branchName.toLowerCase().includes(normalizedQuery) ||
+				application.branchCity.toLowerCase().includes(normalizedQuery) ||
+				application.planName.toLowerCase().includes(normalizedQuery);
 
 			const matchesStatus = statusFilter === 'all' || application.status === statusFilter;
 			const matchesPlan = planFilter === 'all' || application.planSlug === planFilter;
@@ -287,6 +249,29 @@ export default function ApplicationsPage() {
 		setIsReviewModalOpen(true);
 	};
 
+	const handleCreateApplication = async (applicationData: AddApplicationFormData) => {
+		setIsCreatingApplication(true);
+		try {
+			const formData = new FormData();
+			formData.append('fullName', applicationData.fullName);
+			formData.append('email', applicationData.email);
+			formData.append('phoneNumber', applicationData.phoneNumber);
+			formData.append('planSlug', applicationData.planSlug);
+			formData.append('deviceCount', String(applicationData.deviceCount));
+			formData.append('branches', JSON.stringify(applicationData.branches));
+			formData.append('specialRequirements', applicationData.specialRequirements);
+			formData.append('proofOfBillingFile', applicationData.proofOfBillingFile);
+			formData.append('validIdFrontFile', applicationData.validIdFrontFile);
+			formData.append('validIdBackFile', applicationData.validIdBackFile);
+
+			await addApplication(formData);
+			await loadApplications();
+			setIsAddApplicationModalOpen(false);
+		} finally {
+			setIsCreatingApplication(false);
+		}
+	};
+
 	const handleSubmitReview = (decision: ApplicationDecision) => {
 		setPendingDecision(decision);
 		setIsReviewModalOpen(false);
@@ -300,20 +285,12 @@ export default function ApplicationsPage() {
 
 		setIsApplyingReview(true);
 		try {
-			setApplications(currentApplications =>
-				currentApplications.map(application => {
-					if (application.id !== selectedApplication.id) {
-						return application;
-					}
-
-					return {
-						...application,
-						status: pendingDecision.status,
-						reason: pendingDecision.note.trim() || application.reason,
-						reviewedBy: 'Current Admin',
-					};
-				}),
-			);
+			await reviewApplication({
+				applicationId: selectedApplication.id,
+				status: pendingDecision.status,
+				note: pendingDecision.note,
+			});
+			await loadApplications();
 		} finally {
 			setIsApplyingReview(false);
 			setIsConfirmationModalOpen(false);
@@ -342,6 +319,14 @@ export default function ApplicationsPage() {
 								Monitor incoming subscriptions, review submitted documents, and move each application through the same
 								workflow style used across the rest of the admin app.
 							</p>
+							<button
+								type="button"
+								onClick={() => setIsAddApplicationModalOpen(true)}
+								className="inline-flex items-center gap-2 rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/15"
+							>
+								<PlusIcon size={16} />
+								Add Application
+							</button>
 						</div>
 					</div>
 
@@ -413,7 +398,7 @@ export default function ApplicationsPage() {
 									onChange={event => setPlanFilter(event.target.value as PlanFilter)}
 									className="bg-transparent outline-none text-sm text-white"
 								>
-									{PLAN_FILTERS.map(option => (
+									{planFilterOptions.map(option => (
 										<option key={option.value} value={option.value} className="bg-slate-950">
 											{option.label}
 										</option>
@@ -423,7 +408,13 @@ export default function ApplicationsPage() {
 						</div>
 
 						<div className="space-y-4">
-							{filteredApplications.map(application => {
+							{isLoadingApplications && (
+								<GlassCard glowColor="cyan" className="text-center py-14">
+									<p className="text-sm text-slate-300">Loading applications from the database...</p>
+								</GlassCard>
+							)}
+
+							{!isLoadingApplications && filteredApplications.map(application => {
 								const status = STATUS_META[application.status];
 								const StatusIcon = status.icon;
 
@@ -444,7 +435,7 @@ export default function ApplicationsPage() {
 
 													<div className="min-w-0">
 														<h3 className="text-xl font-semibold text-white">{application.fullName}</h3>
-														<p className="text-sm text-slate-400 break-words">{getPlanLabel(application.planSlug)} · {application.deviceCount} devices</p>
+														<p className="text-sm text-slate-400 break-words">{application.planName} · {application.deviceCount} devices</p>
 													</div>
 												</div>
 
@@ -475,8 +466,8 @@ export default function ApplicationsPage() {
 
 												<div className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-1">
 													<p className="text-xs uppercase tracking-[0.2em] text-slate-500">Branch</p>
-													<p className="text-white flex items-start gap-2 min-w-0 break-words"><MapPinIcon size={14} className="text-cyan-300 mt-0.5 shrink-0" />{application.branch}</p>
-													<p className="text-slate-300 break-words">{application.city}</p>
+													<p className="text-white flex items-start gap-2 min-w-0 break-words"><MapPinIcon size={14} className="text-cyan-300 mt-0.5 shrink-0" />{application.branchName || 'Unassigned branch'}</p>
+													<p className="text-slate-300 break-words">{application.branchCity || application.branchCode || 'No branch data'}</p>
 												</div>
 
 												<div className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-1">
@@ -488,22 +479,28 @@ export default function ApplicationsPage() {
 												<div className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-1">
 													<p className="text-xs uppercase tracking-[0.2em] text-slate-500">Documents</p>
 													<p className="text-white flex items-center gap-2 min-w-0"><FileTextIcon size={14} className="text-cyan-300 shrink-0" />{application.documents.length} uploaded</p>
-													<p className="text-slate-300 break-words">{application.reviewedBy ? `Reviewed by ${application.reviewedBy}` : 'Pending assignment'}</p>
+													<p className="text-slate-300 break-words">{application.reviewedByName ? `Reviewed by ${application.reviewedByName}` : 'Pending assignment'}</p>
 												</div>
 											</div>
 
 											<div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/5 p-4 md:flex-row md:items-center md:justify-between min-w-0">
 												<div className="flex flex-wrap items-center gap-2 min-w-0">
-													{application.documents.map(documentName => (
-														<span key={documentName} className="max-w-full rounded-full border border-white/10 bg-slate-950/40 px-3 py-1 text-xs text-slate-300 break-words">
-															{documentName}
-														</span>
+													{application.documents.map(document => (
+														<a
+															href={document.url ?? '#'}
+															target={document.url ? '_blank' : undefined}
+															rel={document.url ? 'noreferrer' : undefined}
+															key={document.name}
+															className="max-w-full rounded-full border border-white/10 bg-slate-950/40 px-3 py-1 text-xs text-slate-300 break-words"
+														>
+															{document.name}
+														</a>
 													))}
 												</div>
 
 												<div className="text-sm text-slate-400 min-w-0 break-words">
-													{application.reason ? (
-														<span className="text-fuchsia-300">{application.reason}</span>
+													{application.statusReason ? (
+														<span className="text-fuchsia-300">{application.statusReason}</span>
 													) : (
 														<span>Ready for the next workflow step.</span>
 													)}
@@ -512,9 +509,9 @@ export default function ApplicationsPage() {
 										</div>
 									</GlassCard>
 								);
-							})}
+										})}
 
-							{filteredApplications.length === 0 && (
+										{!isLoadingApplications && filteredApplications.length === 0 && (
 								<GlassCard glowColor="cyan" className="text-center py-14">
 									<div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-cyan-300">
 										<FileTextIcon size={24} />
@@ -522,6 +519,12 @@ export default function ApplicationsPage() {
 									<h3 className="mt-4 text-lg font-semibold text-white">No applications match these filters</h3>
 									<p className="mt-2 text-sm text-slate-400">Try widening the search or clearing one of the filters.</p>
 								</GlassCard>
+							)}
+
+							{loadError && (
+								<GlassCard glowColor="red" className="text-center py-10">
+									<p className="text-sm text-red-200">{loadError}</p>
+							</GlassCard>
 							)}
 						</div>
 					</GlassCard>
@@ -564,9 +567,14 @@ export default function ApplicationsPage() {
 
 							<div className="space-y-3 text-sm">
 								{[
-									{ label: 'Submitted this week', value: '12' },
-									{ label: 'Awaiting payment', value: '4' },
-									{ label: 'Rejected for review', value: '2' },
+									{ label: 'Submitted this week', value: String(applications.filter(application => {
+										const submittedAt = new Date(application.submittedAt);
+										const now = new Date();
+										const diffDays = Math.floor((now.getTime() - submittedAt.getTime()) / 86_400_000);
+										return diffDays <= 7;
+									}).length) },
+									{ label: 'Awaiting payment', value: String(applications.filter(application => application.status === 'awaiting_downpayment').length) },
+									{ label: 'Rejected for review', value: String(applications.filter(application => application.status === 'rejected').length) },
 								].map(item => (
 									<div key={item.label} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3">
 										<span className="text-slate-300">{item.label}</span>
@@ -586,6 +594,13 @@ export default function ApplicationsPage() {
 					setIsViewModalOpen(false);
 					setSelectedApplication(null);
 				}}
+			/>
+
+			<AddApplicationModal
+				isOpen={isAddApplicationModalOpen}
+				onClose={() => setIsAddApplicationModalOpen(false)}
+				onSubmit={handleCreateApplication}
+				isSubmitting={isCreatingApplication}
 			/>
 
 			<ReviewModal

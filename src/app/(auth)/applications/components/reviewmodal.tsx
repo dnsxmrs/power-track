@@ -61,7 +61,8 @@ export function ReviewModal({ isOpen, onClose, onSubmit, application }: ReviewMo
 						<div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
 							<p className="text-white font-medium">{application.ticketNumber}</p>
 							<p className="mt-1 break-words">{application.email}</p>
-							<p className="mt-1 break-words">{application.branch} · {application.city}</p>
+							<p className="mt-1 break-words">{application.branchName || 'Unassigned branch'} · {application.branchCity || application.branchCode || 'No branch data'}</p>
+							<p className="mt-1 break-words">{application.planName} · {application.deviceCount} devices</p>
 						</div>
 
 						<div className="space-y-3">
