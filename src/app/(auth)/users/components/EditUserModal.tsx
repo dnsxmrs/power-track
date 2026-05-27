@@ -269,6 +269,27 @@ export function EditUserModal({ isOpen, user, onClose, onSubmit }: EditUserModal
                       <p className="mt-1 text-xs text-cyan-100/80">This user was provisioned from an approved application. Client linkage is managed during creation.</p>
                     </div>
                   )}
+
+                  {user.role === 'CLIENT' && user.clientSubscription && (
+                    <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4">
+                      <p className="text-sm font-semibold text-white">Active subscription</p>
+                      <p className="mt-1 text-xs text-emerald-100/80">
+                        {user.clientSubscription.plan.name} · {user.clientSubscription.status}
+                      </p>
+                      <p className="mt-1 text-xs text-emerald-100/80">
+                        Device cap {user.clientSubscription.deviceCap} · Monthly PHP {user.clientSubscription.monthlyPrice}
+                      </p>
+                      <p className="mt-1 text-xs text-emerald-100/80">
+                        Started {new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(user.clientSubscription.startedAt))}
+                        {user.clientSubscription.nextDueDate ? ` · Next due ${new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(user.clientSubscription.nextDueDate))}` : ''}
+                      </p>
+                      {user.clientSubscription.sourceApplication && (
+                        <p className="mt-1 text-xs text-emerald-100/80">
+                          Source application {user.clientSubscription.sourceApplication.ticketNumber} · {user.clientSubscription.sourceApplication.status}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 

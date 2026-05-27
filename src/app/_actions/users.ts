@@ -41,6 +41,26 @@ export interface UserManagementItem {
 	lastActiveAt: string;
 	joinedLabel: string;
 	lastActiveLabel: string;
+	clientSubscription?: {
+		id: string;
+		status: string;
+		startedAt: string;
+		nextDueDate: string | null;
+		deviceCap: number;
+		monthlyPrice: number;
+		plan: {
+			id: string;
+			name: string;
+			slug: string;
+			monthlyPrice: number;
+			deviceCap: number;
+		};
+		sourceApplication: {
+			id: string;
+			ticketNumber: string;
+			status: string;
+		} | null;
+	} | null;
 	clientApplication?: {
 		id: string;
 		ticketNumber: string;
@@ -205,6 +225,33 @@ export async function fetchUsersForManagement(): Promise<UserManagementItem[]> {
 				},
 				take: 1,
 			},
+				clientSubscriptions: {
+					select: {
+						id: true,
+						status: true,
+						startedAt: true,
+						nextDueDate: true,
+						deviceCap: true,
+						monthlyPrice: true,
+						plan: {
+							select: {
+								id: true,
+								name: true,
+								slug: true,
+								monthlyPrice: true,
+								deviceCap: true,
+							},
+						},
+						sourceApplication: {
+							select: {
+								id: true,
+								ticketNumber: true,
+								status: true,
+							},
+						},
+					},
+					take: 1,
+				},
 			sessions: {
 				select: {
 					createdAt: true,
@@ -226,6 +273,7 @@ export async function fetchUsersForManagement(): Promise<UserManagementItem[]> {
 		const lastActiveDate = latestSession?.updatedAt ?? latestSession?.createdAt ?? user.updatedAt;
 		const joinedDate = user.createdAt;
 		const clientApplication = user.clientApplications[0];
+		const clientSubscription = user.clientSubscriptions[0];
 
 		return {
 			id: user.id,
@@ -241,6 +289,30 @@ export async function fetchUsersForManagement(): Promise<UserManagementItem[]> {
 			lastActiveAt: lastActiveDate.toISOString(),
 			joinedLabel: formatDateLabel(joinedDate),
 			lastActiveLabel: formatRelativeTime(lastActiveDate),
+			clientSubscription: clientSubscription
+				? {
+					id: clientSubscription.id,
+					status: clientSubscription.status,
+					startedAt: clientSubscription.startedAt.toISOString(),
+					nextDueDate: clientSubscription.nextDueDate ? clientSubscription.nextDueDate.toISOString() : null,
+					deviceCap: Number(clientSubscription.deviceCap),
+					monthlyPrice: Number(clientSubscription.monthlyPrice),
+					plan: {
+						id: clientSubscription.plan.id,
+						name: clientSubscription.plan.name,
+						slug: clientSubscription.plan.slug,
+						monthlyPrice: Number(clientSubscription.plan.monthlyPrice),
+						deviceCap: Number(clientSubscription.plan.deviceCap),
+					},
+					sourceApplication: clientSubscription.sourceApplication
+						? {
+							id: clientSubscription.sourceApplication.id,
+							ticketNumber: clientSubscription.sourceApplication.ticketNumber,
+							status: clientSubscription.sourceApplication.status,
+						}
+						: null,
+				}
+				: null,
 			clientApplication: clientApplication
 				? {
 					id: clientApplication.id,
@@ -349,12 +421,12 @@ export async function createUserAccount(input: CreateAccountInput): Promise<Crea
 	await requireAdminFromHeaders(requestHeaders);
 
 	const { name, email, phoneNumber } = validateAndNormalizeCreateInput(input);
-	if (input.role === 'client' && !input.applicationId) {
+	if (input.role === 'CLIENT' && !input.applicationId) {
 		throw new Error('Select an approved application for the client account.');
 	}
 	let approvedApplication: ApprovedClientApplicationCandidate | null = null;
 
-	if (input.role === 'client') {
+	if (input.role === 'CLIENT') {
 		if (!input.applicationId) {
 			throw new Error('Select an approved application for the client account.');
 		}
@@ -452,7 +524,7 @@ export async function createUserAccount(input: CreateAccountInput): Promise<Crea
 		},
 	});
 
-	if (input.role === 'client' && approvedApplication) {
+	if (input.role === 'CLIENT' && approvedApplication) {
 		await prisma.$transaction([
 			prisma.clientSubscription.create({
 				data: {

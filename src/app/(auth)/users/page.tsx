@@ -66,6 +66,14 @@ function formatPhoneDisplay(phoneNumber: string | null | undefined): string {
   return `+63 ${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
 }
 
+function formatDateLabel(dateString: string): string {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(new Date(dateString));
+}
+
 export default function UsersPage() {
   const [users, setUsers] = useState<UserManagementItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -503,6 +511,38 @@ export default function UsersPage() {
                             </div>
                           </div>
                         </div>
+
+                        {user.role === 'CLIENT' && user.clientSubscription && (
+                          <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4">
+                            <p className="text-sm font-semibold text-white">Subscription</p>
+                            <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                              <div>
+                                <p className="text-xs text-emerald-100/70 mb-0.5">Plan</p>
+                                <p className="text-emerald-100">{user.clientSubscription.plan.name}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-emerald-100/70 mb-0.5">Status</p>
+                                <p className="text-emerald-100">{user.clientSubscription.status}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-emerald-100/70 mb-0.5">Device Cap</p>
+                                <p className="text-emerald-100">{user.clientSubscription.deviceCap}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-emerald-100/70 mb-0.5">Monthly Price</p>
+                                <p className="text-emerald-100">PHP {user.clientSubscription.monthlyPrice}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-emerald-100/70 mb-0.5">Started</p>
+                                <p className="text-emerald-100">{formatDateLabel(user.clientSubscription.startedAt)}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-emerald-100/70 mb-0.5">Next Due</p>
+                                <p className="text-emerald-100">{user.clientSubscription.nextDueDate ? formatDateLabel(user.clientSubscription.nextDueDate) : 'Not scheduled'}</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
                         <div className="flex gap-2 mt-4 pt-4 border-t border-white/10" onClick={e => e.stopPropagation()}>
                           <motion.button

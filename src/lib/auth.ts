@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { nextCookies } from 'better-auth/next-js';
 import { admin, bearer, emailOTP, twoFactor } from 'better-auth/plugins';
+import { adminAc, userAc } from 'better-auth/plugins/admin/access';
 import { expo } from '@better-auth/expo';
 import { prisma } from './prisma';
 import nodemailer from 'nodemailer';
@@ -84,7 +85,15 @@ export const auth = betterAuth({
         twoFactor(),
         // Expo plugin enables the Better Auth Expo integration (mobile clients)
         expo(),
-        admin(),
+        admin({
+            defaultRole: 'CLIENT',
+            adminRoles: ['ADMIN', 'SUPERADMIN'],
+            roles: {
+                ADMIN: adminAc,
+                SUPERADMIN: adminAc,
+                CLIENT: userAc,
+            },
+        }),
         bearer(),
         nextCookies(),
         emailOTP({
