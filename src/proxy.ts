@@ -35,6 +35,13 @@ export async function proxy(request: NextRequest) {
             return NextResponse.redirect(signInUrl);
         }
 
+        // Only allow ADMIN and SUPERADMIN to access protected admin routes
+        const role = (session.user as any)?.role as string | undefined;
+        const normalized = role?.toString().toUpperCase();
+        if (normalized !== 'ADMIN' && normalized !== 'SUPERADMIN') {
+            return NextResponse.redirect(new URL('/', request.url));
+        }
+
         return NextResponse.next();
     }
 

@@ -1,5 +1,5 @@
 import { headers } from 'next/headers';
-import { auth } from '@/lib/auth';
+import { auth, requireAdminFromHeaders } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export type SettingsRecord = {
@@ -11,11 +11,7 @@ export type SettingsRecord = {
 
 export async function getSettings(): Promise<SettingsRecord | null> {
 	const requestHeaders = await headers();
-	const session = await auth.api.getSession({ headers: requestHeaders });
-
-	if (!session?.user) {
-		throw new Error('Unauthorized');
-	}
+	await requireAdminFromHeaders(requestHeaders);
 
 	return prisma.settings.findFirst({
 		orderBy: { createdAt: 'desc' },

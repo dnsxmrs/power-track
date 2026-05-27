@@ -129,3 +129,19 @@ export const auth = betterAuth({
 });
 
 export type Session = typeof auth.$Infer.Session;
+
+// Helper: normalize role values from different sources (enum vs lowercase string)
+export function isAdminRole(role?: string | null) {
+    if (!role) return false;
+    const normalized = role.toString().toUpperCase();
+    return normalized === 'ADMIN' || normalized === 'SUPERADMIN';
+}
+
+// Require that the session exists and that the user has ADMIN or SUPERADMIN role.
+export async function requireAdminFromHeaders(headers: any) {
+    const session = await auth.api.getSession({ headers });
+    if (!session?.user) throw new Error('Unauthorized');
+    const role = (session.user as any).role as string | undefined;
+    if (!isAdminRole(role)) throw new Error('Forbidden');
+    return session;
+}

@@ -3,7 +3,7 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import { headers } from 'next/headers';
 import { hashPassword } from 'better-auth/crypto';
-import { auth } from '../../lib/auth';
+import { auth, requireAdminFromHeaders } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
 import { sendAccountEmail } from './email';
 import { normalizeEmail, normalizePHPhoneNumber, validatePHPhoneNumber, validateUserEmail, validateUserName } from '../../lib/userAccountValidation';
@@ -95,11 +95,7 @@ function formatDateLabel(date: Date): string {
 
 export async function fetchUsersForManagement(): Promise<UserManagementItem[]> {
 	const requestHeaders = await headers();
-	const session = await auth.api.getSession({ headers: requestHeaders });
-
-	if (!session?.user) {
-		throw new Error('Unauthorized');
-	}
+	await requireAdminFromHeaders(requestHeaders);
 
 	const users = await prisma.user.findMany({
 		where: {
@@ -181,11 +177,7 @@ function validateAndNormalizeCreateInput(input: CreateAccountInput): { name: str
 
 export async function createUserAccount(input: CreateAccountInput): Promise<CreateUserAccountResult> {
 	const requestHeaders = await headers();
-	const session = await auth.api.getSession({ headers: requestHeaders });
-
-	if (!session?.user) {
-		throw new Error('Unauthorized');
-	}
+	await requireAdminFromHeaders(requestHeaders);
 
 	const { name, email, phoneNumber } = validateAndNormalizeCreateInput(input);
 
@@ -240,11 +232,7 @@ export async function createUserAccount(input: CreateAccountInput): Promise<Crea
 
 export async function reactivateUserAccount(userId: string, input: CreateAccountInput): Promise<{ userId: string; tempPassword: string }> {
 	const requestHeaders = await headers();
-	const session = await auth.api.getSession({ headers: requestHeaders });
-
-	if (!session?.user) {
-		throw new Error('Unauthorized');
-	}
+	await requireAdminFromHeaders(requestHeaders);
 
 	const { name, email, phoneNumber } = validateAndNormalizeCreateInput(input);
 
@@ -295,11 +283,7 @@ export interface UpdateAccountInput {
 
 export async function updateUserAccount(userId: string, updates: UpdateAccountInput): Promise<{ success: boolean }> {
 	const requestHeaders = await headers();
-	const session = await auth.api.getSession({ headers: requestHeaders });
-
-	if (!session?.user) {
-		throw new Error('Unauthorized');
-	}
+	await requireAdminFromHeaders(requestHeaders);
 
 	const name = updates.name.trim();
 	const phoneNumber = normalizePHPhoneNumber(updates.phoneNumber);
