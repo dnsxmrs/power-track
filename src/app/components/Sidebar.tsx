@@ -11,13 +11,14 @@ import {
   ZapIcon,
   Menu,
   UsersIcon,
+  ClipboardListIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
 
-export type PageType = 'dashboard' | 'devices' | 'alerts' | 'reports' | 'branches' | 'settings' | 'users';
+export type PageType = 'dashboard' | 'devices' | 'alerts' | 'reports' | 'branches' | 'applications' | 'settings' | 'users';
 
 const NAV_ITEMS = [
   { id: 'dashboard' as PageType, label: 'Dashboard', icon: LayoutDashboardIcon, href: '/dashboard' },
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { id: 'alerts' as PageType, label: 'Alerts', icon: BellIcon, href: '/alerts' },
   { id: 'reports' as PageType, label: 'Reports', icon: BarChart3Icon, href: '/reports' },
   { id: 'branches' as PageType, label: 'Branches', icon: BuildingIcon, href: '/branches' },
+  { id: 'applications' as PageType, label: 'Applications', icon: ClipboardListIcon, href: '/applications' },
   { id: 'users' as PageType, label: 'Users', icon: UsersIcon, href: '/users' },
   { id: 'settings' as PageType, label: 'Settings', icon: SettingsIcon, href: '/settings' },
 ] as const;
