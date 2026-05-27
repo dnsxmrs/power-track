@@ -185,11 +185,7 @@ export default function ApplicationsPage() {
 	}, []);
 
 	useEffect(() => {
-		const timer = window.setTimeout(() => {
-			void loadApplications();
-		}, 0);
-
-		return () => window.clearTimeout(timer);
+		void Promise.resolve().then(() => loadApplications());
 	}, [loadApplications]);
 
 	const filteredApplications = useMemo(() => {

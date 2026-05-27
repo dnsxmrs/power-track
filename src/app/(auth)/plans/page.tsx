@@ -35,11 +35,7 @@ export default function PlansPage() {
   }, []);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void refreshPlans();
-    }, 0);
-
-    return () => window.clearTimeout(timer);
+		void Promise.resolve().then(() => refreshPlans());
   }, [refreshPlans]);
 
   const handleCreate = async (data: CreatePlanInput) => {

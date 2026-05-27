@@ -12,7 +12,7 @@ export type UpdatePlanInput = {
 	monthlyPrice: number;
 	deviceCap: number;
 	description?: string | null;
-	features?: Prisma.InputJsonValue | null;
+	features?: Prisma.InputJsonValue;
 	isPopular?: boolean;
 	isActive?: boolean;
 };
@@ -33,12 +33,7 @@ export async function updatePlan(planId: string, input: UpdatePlanInput) {
 			monthlyPrice: Math.max(0, Math.floor(Number(input.monthlyPrice) || 0)),
 			deviceCap: Math.max(0, Math.floor(Number(input.deviceCap) || 0)),
 			description: input.description ?? null,
-			features:
-				input.features === undefined
-					? undefined
-					: input.features === null
-					? Prisma.JsonNull
-					: (input.features as Prisma.InputJsonValue),
+			features: input.features,
 			isPopular: Boolean(input.isPopular),
 			isActive: input.isActive ?? true,
 		},

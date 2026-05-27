@@ -8,6 +8,15 @@ import { normalizeEmail, formatPhoneDigitsForInput, validatePhoneDigits, validat
 import type { ApprovedClientApplicationCandidate } from '../../../_actions/users';
 import { fetchApprovedApplicationsForClientCreation } from '../../../_actions/users';
 
+const INITIAL_FORM_DATA: UserFormData = {
+  name: '',
+  email: '',
+  phoneNumber: '',
+  role: 'ADMIN',
+  twoFactorEnabled: false,
+  applicationId: null,
+};
+
 interface AddUserModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -30,14 +39,7 @@ interface Validations {
 }
 
 export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
-  const [formData, setFormData] = useState<UserFormData>({
-    name: '',
-    email: '',
-    phoneNumber: '',
-    role: 'ADMIN',
-    twoFactorEnabled: false,
-    applicationId: null,
-  });
+  const [formData, setFormData] = useState<UserFormData>(INITIAL_FORM_DATA);
 
   const [approvedApplications, setApprovedApplications] = useState<ApprovedClientApplicationCandidate[]>([]);
   const [selectedApplicationId, setSelectedApplicationId] = useState<string>('');
@@ -131,7 +133,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
       }
     };
 
-    void loadApplications();
+    void Promise.resolve().then(() => loadApplications());
   }, [isOpen]);
 
   const validateForm = (): boolean => {
