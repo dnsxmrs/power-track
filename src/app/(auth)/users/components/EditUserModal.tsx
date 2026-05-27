@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Mail, User, Shield, Phone, CheckCircle, AlertCircle, Lock } from 'lucide-react';
 import { GlassCard } from '../../../components/GlassCard';
@@ -25,12 +25,12 @@ type TabType = 'basic' | 'security' | 'activity';
 
 export function EditUserModal({ isOpen, user, onClose, onSubmit }: EditUserModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('basic');
-  const [formData, setFormData] = useState<EditUserData>({
+  const [formData, setFormData] = useState<EditUserData>(() => ({
     name: user?.name || '',
     phoneNumber: user?.phoneNumber || '',
     role: user?.role === 'SUPERADMIN' ? 'SUPERADMIN' : user?.role === 'CLIENT' ? 'CLIENT' : 'ADMIN',
     twoFactorEnabled: user?.twoFactorEnabled || false,
-  });
+  }));
 
   const [phoneDigits, setPhoneDigits] = useState(() => {
     if (!user?.phoneNumber) return '';
@@ -39,21 +39,6 @@ export function EditUserModal({ isOpen, user, onClose, onSubmit }: EditUserModal
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (!user) {
-      return;
-    }
-
-    setFormData({
-      name: user.name,
-      phoneNumber: user.phoneNumber || '',
-      role: user.role === 'SUPERADMIN' ? 'SUPERADMIN' : user.role === 'CLIENT' ? 'CLIENT' : 'ADMIN',
-      twoFactorEnabled: user.twoFactorEnabled,
-    });
-    setPhoneDigits(user.phoneNumber ? user.phoneNumber.replace(/\D/g, '').slice(-10) : '');
-    setErrors({});
-  }, [user]);
 
   const handlePhoneDigitChange = (value: string) => {
     const digits = value.replace(/\D/g, '').slice(0, 10);

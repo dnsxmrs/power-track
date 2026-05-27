@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, MailIcon, PhoneIcon, UserIcon, Building2Icon, MapPinIcon, FileTextIcon, Layers3Icon, HashIcon, PlusIcon } from 'lucide-react';
+import { X, MailIcon, PhoneIcon, UserIcon, Building2Icon, FileTextIcon, Layers3Icon, HashIcon, PlusIcon } from 'lucide-react';
 import { GlassCard } from '../../../components/GlassCard';
 
 export type AddApplicationFormData = {
@@ -23,6 +23,7 @@ interface AddApplicationModalProps {
 	onClose: () => void;
 	onSubmit: (applicationData: AddApplicationFormData) => void;
 	isSubmitting?: boolean;
+	planOptions: Array<{ slug: string; name: string }>;
 }
 
 const DEFAULT_FORM: AddApplicationFormData = {
@@ -40,55 +41,35 @@ const DEFAULT_FORM: AddApplicationFormData = {
 
 // Plan options will be fetched from the server
 
-export function AddApplicationModal({ isOpen, onClose, onSubmit, isSubmitting = false }: AddApplicationModalProps) {
+export function AddApplicationModal({ isOpen, onClose, onSubmit, isSubmitting = false, planOptions }: AddApplicationModalProps) {
 	const [formData, setFormData] = useState<AddApplicationFormData>(DEFAULT_FORM);
- 	const [phoneDigits, setPhoneDigits] = useState('');
- 	const [proofOfBillingFileName, setProofOfBillingFileName] = useState('No file selected');
- 	const [validIdFrontFileName, setValidIdFrontFileName] = useState('No file selected');
- 	const [validIdBackFileName, setValidIdBackFileName] = useState('No file selected');
-
- 	const [planOptions, setPlanOptions] = useState<Array<{ slug: string; name: string }>>([]);
-
- 	useEffect(() => {
- 		if (isOpen) {
- 			setFormData(DEFAULT_FORM);
- 			setPhoneDigits('');
- 			setProofOfBillingFileName('No file selected');
- 			setValidIdFrontFileName('No file selected');
- 			setValidIdBackFileName('No file selected');
-			// fetch plans from API route (include credentials so server can read session)
-			fetch('/api/plans', { credentials: 'include' })
-				.then(res => {
-					if (!res.ok) throw new Error('Failed to fetch plans');
-					return res.json();
-				})
-				.then((plans: any) => setPlanOptions(plans.map((p: any) => ({ slug: p.slug, name: p.name }))))
-				.catch(() => setPlanOptions([]));
- 		}
- 	}, [isOpen]);
+	const [phoneDigits, setPhoneDigits] = useState('');
+	const [proofOfBillingFileName, setProofOfBillingFileName] = useState('No file selected');
+	const [validIdFrontFileName, setValidIdFrontFileName] = useState('No file selected');
+	const [validIdBackFileName, setValidIdBackFileName] = useState('No file selected');
 
 	// keep hooks stable — render nothing visually when closed but keep hooks mounted
 	if (!isOpen) return null;
 
-const updateField = <K extends keyof AddApplicationFormData>(field: K, value: AddApplicationFormData[K]) => {
- 	setFormData(current => ({ ...current, [field]: value }));
-};
+	const updateField = <K extends keyof AddApplicationFormData>(field: K, value: AddApplicationFormData[K]) => {
+		setFormData(current => ({ ...current, [field]: value }));
+	};
 
-const updateBranch = (index: number, key: 'name' | 'city' | 'province' | 'address' | 'notes', value: string) => {
- 	setFormData(current => {
- 		const branches = [...current.branches];
- 		branches[index] = { ...branches[index], [key]: value };
- 		return { ...current, branches };
- 	});
-};
+	const updateBranch = (index: number, key: 'name' | 'city' | 'province' | 'address' | 'notes', value: string) => {
+		setFormData(current => {
+			const branches = [...current.branches];
+			branches[index] = { ...branches[index], [key]: value };
+			return { ...current, branches };
+		});
+	};
 
-const addBranch = () => {
-	setFormData(current => ({ ...current, branches: [...current.branches, { name: '', city: '', province: '', address: '', notes: '' }] }));
-};
+	const addBranch = () => {
+		setFormData(current => ({ ...current, branches: [...current.branches, { name: '', city: '', province: '', address: '', notes: '' }] }));
+	};
 
-const removeBranch = (index: number) => {
- 	setFormData(current => ({ ...current, branches: current.branches.filter((_, i) => i !== index) }));
-};
+	const removeBranch = (index: number) => {
+		setFormData(current => ({ ...current, branches: current.branches.filter((_, i) => i !== index) }));
+	};
 
 
 	const formatPhoneDigitsForInput = (digits: string): string => {
@@ -129,14 +110,14 @@ const removeBranch = (index: number) => {
 		}
 	};
 
- 	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
- 		event.preventDefault();
- 		await onSubmit(formData);
- 		setFormData(DEFAULT_FORM);
- 		setProofOfBillingFileName('No file selected');
- 		setValidIdFrontFileName('No file selected');
- 		setValidIdBackFileName('No file selected');
- 	};
+	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		await onSubmit(formData);
+		setFormData(DEFAULT_FORM);
+		setProofOfBillingFileName('No file selected');
+		setValidIdFrontFileName('No file selected');
+		setValidIdBackFileName('No file selected');
+	};
 
 	return (
 		<>

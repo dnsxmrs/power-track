@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { useCallback, useEffect, useState } from 'react';
 import { GlassCard } from '../../components/GlassCard';
 import { AddPlanModal } from './components/addplan';
 import { EditPlanModal } from './components/editplan';
@@ -10,8 +9,8 @@ import {
   fetchPlansForManagement,
   type PlanManagementItem,
 } from '../../_actions/plans/getplans';
-import { createPlan } from '../../_actions/plans/addplan';
-import { updatePlan } from '../../_actions/plans/editplan';
+import { createPlan, type CreatePlanInput } from '../../_actions/plans/addplan';
+import { updatePlan, type UpdatePlanInput } from '../../_actions/plans/editplan';
 import { deletePlan } from '../../_actions/plans/deleteplan';
 
 export default function PlansPage() {
@@ -28,7 +27,7 @@ export default function PlansPage() {
       setIsLoading(true);
       const items = await fetchPlansForManagement();
       setPlans(items);
-    } catch (err) {
+    } catch {
       // swallow for now, page will show empty state
     } finally {
       setIsLoading(false);
@@ -36,16 +35,20 @@ export default function PlansPage() {
   }, []);
 
   useEffect(() => {
-    void refreshPlans();
+    const timer = window.setTimeout(() => {
+      void refreshPlans();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [refreshPlans]);
 
-  const handleCreate = async (data: any) => {
+  const handleCreate = async (data: CreatePlanInput) => {
     await createPlan(data);
     setIsAddOpen(false);
     await refreshPlans();
   };
 
-  const handleEdit = async (planId: string, data: any) => {
+  const handleEdit = async (planId: string, data: UpdatePlanInput) => {
     await updatePlan(planId, data);
     setIsEditOpen(false);
     setSelectedPlan(null);
@@ -63,9 +66,6 @@ export default function PlansPage() {
       setIsProcessingDelete(false);
     }
   };
-
-  const activePlans = useMemo(() => plans.filter(p => p.isActive), [plans]);
-
   return (
     <div className="max-w-7xl mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
@@ -108,9 +108,10 @@ export default function PlansPage() {
         )}
       </div>
 
-      <AddPlanModal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} onSubmit={handleCreate} />
+      <AddPlanModal key={isAddOpen ? 'open' : 'closed'} isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} onSubmit={handleCreate} />
 
       <EditPlanModal
+        key={`${selectedPlan?.id ?? 'none'}-${isEditOpen ? 'open' : 'closed'}`}
         isOpen={isEditOpen}
         onClose={() => { setIsEditOpen(false); setSelectedPlan(null); }}
         plan={selectedPlan}

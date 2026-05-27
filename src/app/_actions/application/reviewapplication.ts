@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { requireAdminFromHeaders } from '@/lib/auth';
+import type { ApplicationStatus } from '@/generated/prisma/enums';
 
 export type ReviewApplicationInput = {
 	applicationId: string;
@@ -15,8 +16,7 @@ export async function reviewApplication(input: ReviewApplicationInput): Promise<
 	const requestHeaders = await headers();
 	const session = await requireAdminFromHeaders(requestHeaders);
 
-	const database = prisma as any;
-	const statusMap: Record<ReviewApplicationInput['status'], string> = {
+	const statusMap: Record<ReviewApplicationInput['status'], ApplicationStatus> = {
 		approved: 'APPROVED',
 		rejected: 'REJECTED',
 		awaiting_downpayment: 'AWAITING_DOWNPAYMENT',
@@ -24,7 +24,7 @@ export async function reviewApplication(input: ReviewApplicationInput): Promise<
 	};
 
 	const now = new Date();
-	await database.application.update({
+	await prisma.application.update({
 		where: { id: input.applicationId },
 		data: {
 			status: statusMap[input.status],
