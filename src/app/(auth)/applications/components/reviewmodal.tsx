@@ -28,6 +28,18 @@ const OUTCOME_OPTIONS: Array<{ value: ApplicationDecision['status']; label: stri
 export function ReviewModal({ isOpen, onClose, onSubmit, application }: ReviewModalProps) {
 	const [status, setStatus] = useState<ApplicationDecision['status']>('approved');
 	const [note, setNote] = useState('');
+	const imageDocuments = application?.documents.filter(document => document.mimeType?.startsWith('image/')) ?? [];
+	const branches = application?.branches.length
+		? application.branches
+		: application
+			? [{
+				name: application.branchName || 'Unassigned branch',
+				city: application.branchCity || '',
+				province: application.branchProvince || '',
+				address: application.branchAddress || '',
+				notes: application.branchNotes || '',
+			}]
+			: [];
 
 	useEffect(() => {
 		if (!isOpen || !application) {
@@ -63,6 +75,38 @@ export function ReviewModal({ isOpen, onClose, onSubmit, application }: ReviewMo
 							<p className="mt-1 break-words">{application.email}</p>
 							<p className="mt-1 break-words">{application.branchName || 'Unassigned branch'} · {application.branchCity || application.branchCode || 'No branch data'}</p>
 							<p className="mt-1 break-words">{application.planName} · {application.deviceCount} devices</p>
+						</div>
+
+						{imageDocuments.length > 0 && (
+							<div className="space-y-3">
+								<p className="text-xs uppercase tracking-[0.2em] text-slate-500">Image previews</p>
+								<div className="grid gap-4 md:grid-cols-2">
+									{imageDocuments.map(document => (
+										<div key={document.name} className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+											{document.url ? (
+												<img src={document.url} alt={document.name} className="h-48 w-full object-cover" />
+											) : (
+												<div className="flex h-48 items-center justify-center text-sm text-slate-400">No preview available</div>
+											)}
+											<div className="border-t border-white/10 px-4 py-3 text-sm text-slate-300">{document.name}</div>
+										</div>
+									))}
+								</div>
+							</div>
+						)}
+
+						<div className="space-y-3">
+							<p className="text-xs uppercase tracking-[0.2em] text-slate-500">Branches</p>
+							<div className="grid gap-3 md:grid-cols-2">
+								{branches.map(branch => (
+									<div key={`${branch.name}-${branch.city}-${branch.address}`} className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-2">
+										<p className="font-medium text-white break-words">{branch.name}</p>
+										<p className="text-sm text-slate-300 break-words">{branch.address || 'No address provided'}</p>
+										<p className="text-sm text-slate-400 break-words">{[branch.city, branch.province].filter(Boolean).join(', ') || 'No city/province provided'}</p>
+										{branch.notes ? <p className="text-xs text-slate-400 break-words">{branch.notes}</p> : null}
+									</div>
+								))}
+							</div>
 						</div>
 
 						<div className="space-y-3">

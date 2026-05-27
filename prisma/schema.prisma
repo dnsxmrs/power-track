@@ -182,6 +182,7 @@ model Application {
   updatedAt              DateTime           @updatedAt
   branchId               String?
   branch                 Branch?            @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  branchSnapshots        Json?
   clientUserId           String?            @unique
   clientUser             User?              @relation("ApplicationClientUser", fields: [clientUserId], references: [id], onDelete: SetNull)
   paymentSubmissions     PaymentSubmission[]

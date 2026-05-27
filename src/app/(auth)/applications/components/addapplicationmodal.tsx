@@ -11,7 +11,7 @@ export type AddApplicationFormData = {
 	phoneNumber: string;
 	planSlug: string;
 	deviceCount: number;
-	branches: Array<{ name: string; city?: string }>;
+	branches: Array<{ name: string; city?: string; province?: string; address?: string; notes?: string }>;
 	specialRequirements: string;
 	proofOfBillingFile: File;
 	validIdFrontFile: File;
@@ -31,7 +31,7 @@ const DEFAULT_FORM: AddApplicationFormData = {
 	phoneNumber: '',
 	planSlug: '',
 	deviceCount: 1,
-	branches: [{ name: '', city: '' }],
+	branches: [{ name: '', city: '', province: '', address: '', notes: '' }],
 	specialRequirements: '',
 	proofOfBillingFile: undefined as unknown as File,
 	validIdFrontFile: undefined as unknown as File,
@@ -74,7 +74,7 @@ const updateField = <K extends keyof AddApplicationFormData>(field: K, value: Ad
  	setFormData(current => ({ ...current, [field]: value }));
 };
 
-const updateBranch = (index: number, key: 'name' | 'city', value: string) => {
+const updateBranch = (index: number, key: 'name' | 'city' | 'province' | 'address' | 'notes', value: string) => {
  	setFormData(current => {
  		const branches = [...current.branches];
  		branches[index] = { ...branches[index], [key]: value };
@@ -83,7 +83,7 @@ const updateBranch = (index: number, key: 'name' | 'city', value: string) => {
 };
 
 const addBranch = () => {
- 	setFormData(current => ({ ...current, branches: [...current.branches, { name: '', city: '' }] }));
+	setFormData(current => ({ ...current, branches: [...current.branches, { name: '', city: '', province: '', address: '', notes: '' }] }));
 };
 
 const removeBranch = (index: number) => {
@@ -206,14 +206,52 @@ const removeBranch = (index: number) => {
 										<PlusIcon size={14} /> Add branch
 									</button>
 								</div>
-								<div className="space-y-2">
+								<div className="space-y-3">
 									{formData.branches.map((b, idx) => (
-										<div key={idx} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
-											<input value={b.name} onChange={e => updateBranch(idx, 'name', e.target.value)} required placeholder="Branch or office name" className="col-span-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none" />
-											<input value={b.city} onChange={e => updateBranch(idx, 'city', e.target.value)} placeholder="City" className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none" />
-											{formData.branches.length > 1 && (
-												<button type="button" onClick={() => removeBranch(idx)} className="px-3 py-2 rounded-lg bg-red-500/10 text-red-300">Remove</button>
-											)}
+										<div key={idx} className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+											<div className="space-y-2">
+												<span className="text-xs uppercase tracking-[0.18em] text-slate-500">Branch {idx + 1}</span>
+												<input
+													value={b.name}
+													onChange={e => updateBranch(idx, 'name', e.target.value)}
+													required
+													placeholder="Branch or office name"
+													className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-cyan-500/50 focus:bg-white/8"
+												/>
+											</div>
+											<div className="grid gap-3 md:grid-cols-2">
+												<input
+													value={b.city}
+													onChange={e => updateBranch(idx, 'city', e.target.value)}
+													placeholder="City"
+													className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-cyan-500/50 focus:bg-white/8"
+												/>
+												<input
+													value={b.province ?? ''}
+													onChange={e => updateBranch(idx, 'province', e.target.value)}
+													placeholder="Province"
+													className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-cyan-500/50 focus:bg-white/8"
+												/>
+											</div>
+											<div className="grid gap-3 md:grid-cols-2">
+												<input
+													value={b.address ?? ''}
+													onChange={e => updateBranch(idx, 'address', e.target.value)}
+													placeholder="Address"
+													className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-cyan-500/50 focus:bg-white/8"
+												/>
+												<input
+													value={b.notes ?? ''}
+													onChange={e => updateBranch(idx, 'notes', e.target.value)}
+													placeholder="Branch notes"
+													className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-cyan-500/50 focus:bg-white/8"
+												/>
+												{formData.branches.length > 1 && (
+													<button type="button" onClick={() => removeBranch(idx)} className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200 transition hover:bg-red-500/15">
+														Remove
+													</button>
+												)}
+											</div>
 										</div>
 									))}
 								</div>

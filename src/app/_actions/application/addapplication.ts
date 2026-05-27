@@ -13,6 +13,14 @@ export type CreateApplicationResult = {
 	submittedAt: string;
 };
 
+type BranchSnapshot = {
+	name: string;
+	city?: string;
+	province?: string;
+	address?: string;
+	notes?: string;
+};
+
 type UploadResult = {
 	fileName: string;
 	url: string;
@@ -35,6 +43,15 @@ function getRequiredFile(formData: FormData, key: string): File {
 	}
 
 	return value;
+}
+
+function slugifyBranchCode(value: string): string {
+	return value
+		.trim()
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/-+/g, '-')
+		.replace(/^-|-$/g, '');
 }
 
 async function uploadApplicationDocument(input: {
@@ -107,19 +124,47 @@ export async function addApplication(formData: FormData): Promise<CreateApplicat
 		select: { id: true },
 	});
 
+	let branchSnapshots: BranchSnapshot[] = [];
+
 	// Support multiple branches creation: parse 'branches' JSON if provided
 	let firstBranchId: string | null = branch?.id ?? null;
 	if (rawBranches) {
 		try {
-			const parsed = JSON.parse(rawBranches) as Array<{ name: string; city?: string }>;
+			const parsed = JSON.parse(rawBranches) as BranchSnapshot[];
 			if (Array.isArray(parsed) && parsed.length > 0) {
+				branchSnapshots = parsed
+					.map(branchEntry => ({
+						name: branchEntry.name.trim(),
+						city: branchEntry.city?.trim() || undefined,
+						province: branchEntry.province?.trim() || undefined,
+						address: branchEntry.address?.trim() || undefined,
+						notes: branchEntry.notes?.trim() || undefined,
+					}))
+					.filter(branchEntry => branchEntry.name.length > 0);
+
 				const branchIds: string[] = [];
-				for (const b of parsed) {
+				for (const b of branchSnapshots) {
+					const branchName = b.name.trim();
+					if (!branchName) {
+						continue;
+					}
+
 					const existing = await database.branch.findFirst({ where: { OR: [{ name: b.name }, { code: b.name }] }, select: { id: true } });
 					if (existing) {
 						branchIds.push(existing.id);
 					} else {
-						const created = await database.branch.create({ data: { name: b.name, city: b.city ?? null } });
+						const baseCode = slugifyBranchCode(branchName) || 'branch';
+						const uniqueCode = `${baseCode}-${String(Date.now()).slice(-6)}`;
+						const created = await database.branch.create({
+							data: {
+								name: branchName,
+								code: uniqueCode,
+								city: b.city ?? null,
+								province: b.province ?? null,
+								address: b.address ?? null,
+								notes: b.notes ?? null,
+							},
+						});
 						branchIds.push(created.id);
 					}
 				}
@@ -128,6 +173,15 @@ export async function addApplication(formData: FormData): Promise<CreateApplicat
 		} catch (err) {
 			// ignore parse errors and fallback to single branch behavior
 		}
+	}
+
+	if (branchSnapshots.length === 0 && branchInput) {
+		branchSnapshots = [
+			{
+				name: branchInput,
+				city: city || undefined,
+			},
+		];
 	}
 
 	const applicationId = randomUUID();
@@ -159,6 +213,7 @@ export async function addApplication(formData: FormData): Promise<CreateApplicat
 			validIdBackUrl: validIdBack.url,
 			validIdBackMimeType: validIdBack.mimeType,
 			branchId: firstBranchId ?? null,
+			branchSnapshots: branchSnapshots,
 		},
 	});
 

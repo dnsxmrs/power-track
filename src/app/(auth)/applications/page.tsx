@@ -46,7 +46,17 @@ export type ApplicationItem = {
 	deviceCount: number;
 	branchName: string;
 	branchCity: string;
+	branchProvince: string;
+	branchAddress: string;
+	branchNotes: string | null;
 	branchCode: string;
+	branches: Array<{
+		name: string;
+		city?: string;
+		province?: string;
+		address?: string;
+		notes?: string;
+	}>;
 	status: ApplicationStatus;
 	submittedAt: string;
 	updatedAt: string;

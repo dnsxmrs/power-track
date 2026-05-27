@@ -23,7 +23,17 @@ export type ApplicationManagementItem = {
 	deviceCount: number;
 	branchName: string;
 	branchCity: string;
+	branchProvince: string;
+	branchAddress: string;
+	branchNotes: string | null;
 	branchCode: string;
+	branches: Array<{
+		name: string;
+		city?: string;
+		province?: string;
+		address?: string;
+		notes?: string;
+	}>;
 	status: 'submitted' | 'under_review' | 'approved' | 'rejected' | 'awaiting_downpayment' | 'active';
 	statusLabel: string;
 	statusReason: string | null;
@@ -98,7 +108,17 @@ export async function fetchApplicationsForManagement(): Promise<ApplicationManag
 		deviceCount: Number(application.deviceCount ?? 0),
 		branchName: application.branch?.name ?? '',
 		branchCity: application.branch?.city ?? '',
+		branchProvince: application.branch?.province ?? '',
+		branchAddress: application.branch?.address ?? '',
+		branchNotes: application.branch?.notes ?? null,
 		branchCode: application.branch?.code ?? '',
+		branches: Array.isArray(application.branchSnapshots) ? application.branchSnapshots : application.branch ? [{
+			name: application.branch.name ?? '',
+			city: application.branch.city ?? '',
+			province: application.branch.province ?? '',
+			address: application.branch.address ?? '',
+			notes: application.branch.notes ?? '',
+		}] : [],
 		status: normalizeStatus(application.status),
 		statusLabel: getStatusLabel(normalizeStatus(application.status)),
 		statusReason: application.statusReason ?? null,
