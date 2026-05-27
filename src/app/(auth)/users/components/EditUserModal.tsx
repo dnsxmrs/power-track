@@ -17,7 +17,7 @@ interface EditUserModalProps {
 export interface EditUserData {
   name: string;
   phoneNumber: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'superadmin';
   twoFactorEnabled: boolean;
 }
 
@@ -28,7 +28,7 @@ export function EditUserModal({ isOpen, user, onClose, onSubmit }: EditUserModal
   const [formData, setFormData] = useState<EditUserData>({
     name: user?.name || '',
     phoneNumber: user?.phoneNumber || '',
-    role: user?.role || 'user',
+    role: user?.role === 'superadmin' ? 'superadmin' : 'admin',
     twoFactorEnabled: user?.twoFactorEnabled || false,
   });
 
@@ -231,14 +231,14 @@ export function EditUserModal({ isOpen, user, onClose, onSubmit }: EditUserModal
                     </label>
                     <select
                       value={formData.role}
-                      onChange={e => setFormData(prev => ({ ...prev, role: e.target.value as 'admin' | 'user' }))}
+                      onChange={e => setFormData(prev => ({ ...prev, role: e.target.value as 'admin' | 'superadmin' }))}
                       className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all cursor-pointer"
                     >
-                      <option value="user" className="bg-slate-900">
-                        User
-                      </option>
                       <option value="admin" className="bg-slate-900">
                         Admin
+                      </option>
+                      <option value="superadmin" className="bg-slate-900">
+                        Super Admin
                       </option>
                     </select>
                   </div>

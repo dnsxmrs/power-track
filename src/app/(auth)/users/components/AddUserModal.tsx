@@ -16,7 +16,7 @@ export interface UserFormData {
   name: string;
   email: string;
   phoneNumber: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'superadmin';
   twoFactorEnabled: boolean;
 }
 
@@ -31,7 +31,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
     name: '',
     email: '',
     phoneNumber: '',
-    role: 'user',
+    role: 'admin',
     twoFactorEnabled: false,
   });
 
@@ -168,7 +168,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
         name: '',
         email: '',
         phoneNumber: '',
-        role: 'user',
+        role: 'admin',
         twoFactorEnabled: false,
       });
       setPhoneDigits('');
@@ -332,11 +332,11 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all cursor-pointer"
                   >
-                    <option value="user" className="bg-slate-900">
-                      User
-                    </option>
                     <option value="admin" className="bg-slate-900">
                       Admin
+                    </option>
+                    <option value="superadmin" className="bg-slate-900">
+                      Super Admin
                     </option>
                   </select>
                 </div>

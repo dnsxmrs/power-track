@@ -36,15 +36,17 @@ import {
 
 const roleColors = {
   admin: { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/30' },
-  user: { bg: 'bg-cyan-500/20', text: 'text-cyan-400', border: 'border-cyan-500/30' },
+  superadmin: { bg: 'bg-fuchsia-500/20', text: 'text-fuchsia-400', border: 'border-fuchsia-500/30' },
+  client: { bg: 'bg-cyan-500/20', text: 'text-cyan-400', border: 'border-cyan-500/30' },
 };
 
 const roleIcons = {
   admin: ShieldIcon,
-  user: UserPlusIcon,
+  superadmin: BadgeCheckIcon,
+  client: UserPlusIcon,
 };
 
-type RoleFilter = 'all' | 'admin' | 'user';
+type RoleFilter = 'all' | 'admin' | 'superadmin' | 'client';
 type StatusFilter = 'all' | 'normal' | 'warning';
 
 function formatFriendlyDate(dateString: string): string {
@@ -329,7 +331,7 @@ export default function UsersPage() {
                   Role
                 </button>
                 <div className="hidden group-hover:flex flex-col absolute right-0 mt-2 w-40 bg-slate-900/95 border border-white/10 rounded-lg shadow-xl z-10 overflow-hidden">
-                  {(['all', 'admin', 'user'] as const).map(role => (
+                  {(['all', 'admin', 'superadmin', 'client'] as const).map(role => (
                     <button
                       key={role}
                       onClick={() => setRoleFilter(role)}
@@ -337,7 +339,7 @@ export default function UsersPage() {
                         roleFilter === role ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-300'
                       }`}
                     >
-                      {role === 'all' ? 'All Roles' : role === 'admin' ? 'Admin' : 'User'}
+                      {role === 'all' ? 'All Roles' : role === 'admin' ? 'Admin' : role === 'superadmin' ? 'Super Admin' : 'Client'}
                     </button>
                   ))}
                 </div>
@@ -425,7 +427,7 @@ export default function UsersPage() {
                               className={`px-2 py-1 rounded text-xs font-medium ${roleStyle.bg} ${roleStyle.text} border ${roleStyle.border} flex items-center gap-1`}
                             >
                               <RoleIcon size={12} />
-                              {user.role === 'admin' ? 'Admin' : 'User'}
+                              {user.role === 'admin' ? 'Admin' : user.role === 'superadmin' ? 'Super Admin' : 'Client'}
                             </span>
                           </div>
                           <p className="text-sm text-slate-400 truncate">{user.email}</p>

@@ -12,7 +12,7 @@ export interface CreateAccountInput {
 	name: string;
 	email: string;
 	phoneNumber: string;
-	role: 'admin' | 'user';
+	role: 'admin' | 'superadmin';
 	twoFactorEnabled: boolean;
 }
 
@@ -31,7 +31,7 @@ export interface UserManagementItem {
 	name: string;
 	email: string;
 	phoneNumber: string;
-	role: 'admin' | 'user';
+	role: 'admin' | 'superadmin' | 'client';
 	twoFactorEnabled: boolean;
 	emailVerified: boolean;
 	banned: boolean;
@@ -54,8 +54,10 @@ function generateTemporaryPassword(length = 14): string {
 	return password;
 }
 
-function normalizeRole(role: string | null | undefined): 'admin' | 'user' {
-	return role === 'admin' ? 'admin' : 'user';
+function normalizeRole(role: string | null | undefined): 'admin' | 'superadmin' | 'client' {
+	if (role === 'admin') return 'admin';
+	if (role === 'superadmin') return 'superadmin';
+	return 'client';
 }
 
 function formatRelativeTime(date: Date): string {
@@ -277,7 +279,7 @@ export async function reactivateUserAccount(userId: string, input: CreateAccount
 export interface UpdateAccountInput {
 	name: string;
 	phoneNumber: string;
-	role: 'admin' | 'user';
+	role: 'admin' | 'superadmin';
 	twoFactorEnabled: boolean;
 }
 
