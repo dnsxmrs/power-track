@@ -527,7 +527,7 @@ export async function createUserAccount(input: CreateAccountInput): Promise<Crea
 	if (input.role === 'CLIENT' && approvedApplication) {
 		const startedAt = new Date();
 
-		// First billing due date: the 20th, two months from the start date.
+		// Default grace period: set the first billing due date to the 20th, two months from the start date.
 		const nextDueDate = (() => {
 			const d = new Date(startedAt);
 			// Advance two months
@@ -550,6 +550,7 @@ export async function createUserAccount(input: CreateAccountInput): Promise<Crea
 					monthlyPrice: approvedApplication.planMonthlyPrice,
 					status: 'active',
 					startedAt,
+					billingCycleDay: 20,
 					nextDueDate,
 				},
 			}),
