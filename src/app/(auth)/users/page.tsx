@@ -35,16 +35,18 @@ import {
 } from '../../_actions/users';
 
 const roleColors = {
-  admin: { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/30' },
-  user: { bg: 'bg-cyan-500/20', text: 'text-cyan-400', border: 'border-cyan-500/30' },
+  ADMIN: { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/30' },
+  SUPERADMIN: { bg: 'bg-fuchsia-500/20', text: 'text-fuchsia-400', border: 'border-fuchsia-500/30' },
+  CLIENT: { bg: 'bg-cyan-500/20', text: 'text-cyan-400', border: 'border-cyan-500/30' },
 };
 
 const roleIcons = {
-  admin: ShieldIcon,
-  user: UserPlusIcon,
+  ADMIN: ShieldIcon,
+  SUPERADMIN: BadgeCheckIcon,
+  CLIENT: UserPlusIcon,
 };
 
-type RoleFilter = 'all' | 'admin' | 'user';
+type RoleFilter = 'all' | 'ADMIN' | 'SUPERADMIN' | 'CLIENT';
 type StatusFilter = 'all' | 'normal' | 'warning';
 
 function formatFriendlyDate(dateString: string): string {
@@ -62,6 +64,14 @@ function formatPhoneDisplay(phoneNumber: string | null | undefined): string {
   if (digits.length <= 3) return `+63 ${digits}`;
   if (digits.length <= 6) return `+63 ${digits.slice(0, 3)} ${digits.slice(3)}`;
   return `+63 ${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
+}
+
+function formatDateLabel(dateString: string): string {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(new Date(dateString));
 }
 
 export default function UsersPage() {
@@ -130,7 +140,7 @@ export default function UsersPage() {
   }, [searchQuery, roleFilter, statusFilter, users]);
 
   const totalCount = users.length;
-  const adminCount = users.filter(user => user.role === 'admin').length;
+  const adminCount = users.filter(user => user.role === 'ADMIN').length;
   const securityReadyCount = users.filter(user => user.twoFactorEnabled).length;
 
   const containerVariants = {
@@ -329,7 +339,7 @@ export default function UsersPage() {
                   Role
                 </button>
                 <div className="hidden group-hover:flex flex-col absolute right-0 mt-2 w-40 bg-slate-900/95 border border-white/10 rounded-lg shadow-xl z-10 overflow-hidden">
-                  {(['all', 'admin', 'user'] as const).map(role => (
+                  {(['all', 'ADMIN', 'SUPERADMIN', 'CLIENT'] as const).map(role => (
                     <button
                       key={role}
                       onClick={() => setRoleFilter(role)}
@@ -337,7 +347,7 @@ export default function UsersPage() {
                         roleFilter === role ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-300'
                       }`}
                     >
-                      {role === 'all' ? 'All Roles' : role === 'admin' ? 'Admin' : 'User'}
+                      {role === 'all' ? 'All Roles' : role === 'ADMIN' ? 'Admin' : role === 'SUPERADMIN' ? 'Super Admin' : 'Client'}
                     </button>
                   ))}
                 </div>
@@ -425,7 +435,7 @@ export default function UsersPage() {
                               className={`px-2 py-1 rounded text-xs font-medium ${roleStyle.bg} ${roleStyle.text} border ${roleStyle.border} flex items-center gap-1`}
                             >
                               <RoleIcon size={12} />
-                              {user.role === 'admin' ? 'Admin' : 'User'}
+                              {user.role === 'ADMIN' ? 'Admin' : user.role === 'SUPERADMIN' ? 'Super Admin' : 'Client'}
                             </span>
                           </div>
                           <p className="text-sm text-slate-400 truncate">{user.email}</p>
@@ -502,6 +512,38 @@ export default function UsersPage() {
                           </div>
                         </div>
 
+                        {user.role === 'CLIENT' && user.clientSubscription && (
+                          <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4">
+                            <p className="text-sm font-semibold text-white">Subscription</p>
+                            <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                              <div>
+                                <p className="text-xs text-emerald-100/70 mb-0.5">Plan</p>
+                                <p className="text-emerald-100">{user.clientSubscription.plan.name}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-emerald-100/70 mb-0.5">Status</p>
+                                <p className="text-emerald-100">{user.clientSubscription.status}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-emerald-100/70 mb-0.5">Device Cap</p>
+                                <p className="text-emerald-100">{user.clientSubscription.deviceCap}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-emerald-100/70 mb-0.5">Monthly Price</p>
+                                <p className="text-emerald-100">PHP {user.clientSubscription.monthlyPrice}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-emerald-100/70 mb-0.5">Started</p>
+                                <p className="text-emerald-100">{formatDateLabel(user.clientSubscription.startedAt)}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-emerald-100/70 mb-0.5">Next Due</p>
+                                <p className="text-emerald-100">{user.clientSubscription.nextDueDate ? formatDateLabel(user.clientSubscription.nextDueDate) : 'Not scheduled'}</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         <div className="flex gap-2 mt-4 pt-4 border-t border-white/10" onClick={e => e.stopPropagation()}>
                           <motion.button
                             onClick={() => handleEditUser(user)}
@@ -536,6 +578,7 @@ export default function UsersPage() {
         </motion.div>
 
         <AddUserModal
+          key={isAddUserModalOpen ? 'open' : 'closed'}
           isOpen={isAddUserModalOpen}
           onClose={() => setIsAddUserModalOpen(false)}
           onSubmit={handleAddUser}

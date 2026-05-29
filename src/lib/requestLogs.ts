@@ -1,5 +1,5 @@
-import type { Prisma } from '@/generated/prisma/client';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@/generated/prisma/client';
 
 export type RequestLogEntry = {
     id: string;
@@ -13,8 +13,9 @@ export type RequestLogEntry = {
 
 const MAX_LOGS = 100;
 
-function toInputJson(value: unknown): Prisma.InputJsonValue {
-    return JSON.parse(JSON.stringify(value ?? null)) as Prisma.InputJsonValue;
+function toInputJson(value: unknown): Prisma.InputJsonValue | typeof Prisma.JsonNull {
+    const parsed = JSON.parse(JSON.stringify(value ?? null));
+    return parsed === null ? Prisma.JsonNull : (parsed as Prisma.InputJsonValue);
 }
 
 export async function addRequestLog(entry: Omit<RequestLogEntry, 'id' | 'receivedAt'>): Promise<RequestLogEntry> {

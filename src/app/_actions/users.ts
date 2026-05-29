@@ -3,7 +3,7 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import { headers } from 'next/headers';
 import { hashPassword } from 'better-auth/crypto';
-import { auth } from '../../lib/auth';
+import { auth, requireAdminFromHeaders } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
 import { sendAccountEmail } from './email';
 import { normalizeEmail, normalizePHPhoneNumber, validatePHPhoneNumber, validateUserEmail, validateUserName } from '../../lib/userAccountValidation';
@@ -12,8 +12,9 @@ export interface CreateAccountInput {
 	name: string;
 	email: string;
 	phoneNumber: string;
-	role: 'admin' | 'user';
+	role: 'ADMIN' | 'SUPERADMIN' | 'CLIENT';
 	twoFactorEnabled: boolean;
+	applicationId?: string | null;
 }
 
 export type ReactivateCandidate = {
@@ -31,7 +32,7 @@ export interface UserManagementItem {
 	name: string;
 	email: string;
 	phoneNumber: string;
-	role: 'admin' | 'user';
+	role: 'ADMIN' | 'SUPERADMIN' | 'CLIENT';
 	twoFactorEnabled: boolean;
 	emailVerified: boolean;
 	banned: boolean;
@@ -40,7 +41,66 @@ export interface UserManagementItem {
 	lastActiveAt: string;
 	joinedLabel: string;
 	lastActiveLabel: string;
+	clientSubscription?: {
+		id: string;
+		status: string;
+		startedAt: string;
+		nextDueDate: string | null;
+		deviceCap: number;
+		monthlyPrice: number;
+		plan: {
+			id: string;
+			name: string;
+			slug: string;
+			monthlyPrice: number;
+			deviceCap: number;
+		};
+		sourceApplication: {
+			id: string;
+			ticketNumber: string;
+			status: string;
+		} | null;
+	} | null;
+	clientApplication?: {
+		id: string;
+		ticketNumber: string;
+		status: string;
+		submittedAt: string;
+		plan: {
+			id: string;
+			name: string;
+			slug: string;
+			monthlyPrice: number;
+			deviceCap: number;
+		};
+		branch: {
+			name: string;
+			city: string;
+			province: string;
+			address: string;
+			notes: string | null;
+		} | null;
+	} | null;
 }
+
+export type ApprovedClientApplicationCandidate = {
+	id: string;
+	ticketNumber: string;
+	fullName: string;
+	email: string;
+	phoneNumber: string;
+	planId: string;
+	planName: string;
+	planSlug: string;
+	planMonthlyPrice: number;
+	planDeviceCap: number;
+	branchName: string;
+	branchCity: string;
+	branchProvince: string;
+	branchAddress: string;
+	branchNotes: string | null;
+	submittedAt: string;
+};
 
 function generateTemporaryPassword(length = 14): string {
 	const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*';
@@ -54,8 +114,47 @@ function generateTemporaryPassword(length = 14): string {
 	return password;
 }
 
-function normalizeRole(role: string | null | undefined): 'admin' | 'user' {
-	return role === 'admin' ? 'admin' : 'user';
+function normalizeRole(role: string | null | undefined): 'ADMIN' | 'SUPERADMIN' | 'CLIENT' {
+	if (role === 'ADMIN' || role === 'admin') return 'ADMIN';
+	if (role === 'SUPERADMIN' || role === 'superadmin') return 'SUPERADMIN';
+	return 'CLIENT';
+}
+
+type BranchSnapshot = {
+	name?: string | null;
+	city?: string | null;
+	province?: string | null;
+	address?: string | null;
+	notes?: string | null;
+};
+
+type ApplicationBranchLike = {
+	branchSnapshots?: unknown;
+	branch?: BranchSnapshot | null;
+};
+
+function getBranchSnapshot(application: ApplicationBranchLike) {
+	const snapshot = Array.isArray(application.branchSnapshots) ? (application.branchSnapshots[0] as BranchSnapshot | undefined) : null;
+
+	if (snapshot) {
+		return {
+			name: snapshot.name ?? application.branch?.name ?? '',
+			city: snapshot.city ?? application.branch?.city ?? '',
+			province: snapshot.province ?? application.branch?.province ?? '',
+			address: snapshot.address ?? application.branch?.address ?? '',
+			notes: snapshot.notes ?? application.branch?.notes ?? null,
+		};
+	}
+
+	return application.branch
+		? {
+			name: application.branch.name ?? '',
+			city: application.branch.city ?? '',
+			province: application.branch.province ?? '',
+			address: application.branch.address ?? '',
+			notes: application.branch.notes ?? null,
+		}
+		: null;
 }
 
 function formatRelativeTime(date: Date): string {
@@ -95,11 +194,7 @@ function formatDateLabel(date: Date): string {
 
 export async function fetchUsersForManagement(): Promise<UserManagementItem[]> {
 	const requestHeaders = await headers();
-	const session = await auth.api.getSession({ headers: requestHeaders });
-
-	if (!session?.user) {
-		throw new Error('Unauthorized');
-	}
+	await requireAdminFromHeaders(requestHeaders);
 
 	const users = await prisma.user.findMany({
 		where: {
@@ -116,6 +211,60 @@ export async function fetchUsersForManagement(): Promise<UserManagementItem[]> {
 			banned: true,
 			createdAt: true,
 			updatedAt: true,
+			clientApplications: {
+				select: {
+					id: true,
+					ticketNumber: true,
+					status: true,
+					submittedAt: true,
+					plan: {
+						select: {
+							id: true,
+							name: true,
+							slug: true,
+							monthlyPrice: true,
+							deviceCap: true,
+						},
+					},
+					branch: {
+						select: {
+							name: true,
+							city: true,
+							province: true,
+							address: true,
+							notes: true,
+						},
+					},
+				},
+				take: 1,
+			},
+				clientSubscriptions: {
+					select: {
+						id: true,
+						status: true,
+						startedAt: true,
+						nextDueDate: true,
+						deviceCap: true,
+						monthlyPrice: true,
+						plan: {
+							select: {
+								id: true,
+								name: true,
+								slug: true,
+								monthlyPrice: true,
+								deviceCap: true,
+							},
+						},
+						sourceApplication: {
+							select: {
+								id: true,
+								ticketNumber: true,
+								status: true,
+							},
+						},
+					},
+					take: 1,
+				},
 			sessions: {
 				select: {
 					createdAt: true,
@@ -136,6 +285,8 @@ export async function fetchUsersForManagement(): Promise<UserManagementItem[]> {
 		const latestSession = user.sessions[0];
 		const lastActiveDate = latestSession?.updatedAt ?? latestSession?.createdAt ?? user.updatedAt;
 		const joinedDate = user.createdAt;
+		const clientApplication = user.clientApplications[0];
+		const clientSubscription = user.clientSubscriptions[0];
 
 		return {
 			id: user.id,
@@ -151,6 +302,105 @@ export async function fetchUsersForManagement(): Promise<UserManagementItem[]> {
 			lastActiveAt: lastActiveDate.toISOString(),
 			joinedLabel: formatDateLabel(joinedDate),
 			lastActiveLabel: formatRelativeTime(lastActiveDate),
+			clientSubscription: clientSubscription
+				? {
+					id: clientSubscription.id,
+					status: clientSubscription.status,
+					startedAt: clientSubscription.startedAt.toISOString(),
+					nextDueDate: clientSubscription.nextDueDate ? clientSubscription.nextDueDate.toISOString() : null,
+					deviceCap: Number(clientSubscription.deviceCap),
+					monthlyPrice: Number(clientSubscription.monthlyPrice),
+					plan: {
+						id: clientSubscription.plan.id,
+						name: clientSubscription.plan.name,
+						slug: clientSubscription.plan.slug,
+						monthlyPrice: Number(clientSubscription.plan.monthlyPrice),
+						deviceCap: Number(clientSubscription.plan.deviceCap),
+					},
+					sourceApplication: clientSubscription.sourceApplication
+						? {
+							id: clientSubscription.sourceApplication.id,
+							ticketNumber: clientSubscription.sourceApplication.ticketNumber,
+							status: clientSubscription.sourceApplication.status,
+						}
+						: null,
+				}
+				: null,
+			clientApplication: clientApplication
+				? {
+					id: clientApplication.id,
+					ticketNumber: clientApplication.ticketNumber,
+					status: clientApplication.status,
+					submittedAt: clientApplication.submittedAt.toISOString(),
+					plan: {
+						id: clientApplication.plan.id,
+						name: clientApplication.plan.name,
+						slug: clientApplication.plan.slug,
+						monthlyPrice: Number(clientApplication.plan.monthlyPrice),
+						deviceCap: Number(clientApplication.plan.deviceCap),
+					},
+					branch: getBranchSnapshot(clientApplication),
+				}
+				: null,
+		};
+	});
+}
+
+export async function fetchApprovedApplicationsForClientCreation(): Promise<ApprovedClientApplicationCandidate[]> {
+	const requestHeaders = await headers();
+	await requireAdminFromHeaders(requestHeaders);
+
+	const applications = await prisma.application.findMany({
+		where: { status: 'APPROVED', clientUserId: null },
+		select: {
+			id: true,
+			ticketNumber: true,
+			fullName: true,
+			email: true,
+			phoneNumber: true,
+			submittedAt: true,
+			plan: {
+				select: {
+					id: true,
+					name: true,
+					slug: true,
+					monthlyPrice: true,
+					deviceCap: true,
+				},
+			},
+			branch: {
+				select: {
+					name: true,
+					city: true,
+					province: true,
+					address: true,
+					notes: true,
+				},
+			},
+		},
+		orderBy: { submittedAt: 'desc' },
+	});
+
+	return applications.map(application => {
+		const branch = getBranchSnapshot(application) ?? { name: '', city: '', province: '', address: '', notes: null };
+
+		return {
+			id: application.id,
+			ticketNumber: application.ticketNumber,
+			fullName: application.fullName,
+			email: application.email,
+			phoneNumber: application.phoneNumber,
+			planId: application.plan.id,
+			planName: application.plan.name,
+			planSlug: application.plan.slug,
+			planMonthlyPrice: Number(application.plan.monthlyPrice),
+			planDeviceCap: Number(application.plan.deviceCap),
+			branchName: branch.name,
+			branchCity: branch.city,
+			branchProvince: branch.province,
+			branchAddress: branch.address,
+			branchNotes: branch.notes,
+			submittedAt: application.submittedAt.toISOString(),
 		};
 	});
 }
@@ -181,13 +431,77 @@ function validateAndNormalizeCreateInput(input: CreateAccountInput): { name: str
 
 export async function createUserAccount(input: CreateAccountInput): Promise<CreateUserAccountResult> {
 	const requestHeaders = await headers();
-	const session = await auth.api.getSession({ headers: requestHeaders });
-
-	if (!session?.user) {
-		throw new Error('Unauthorized');
-	}
+	await requireAdminFromHeaders(requestHeaders);
 
 	const { name, email, phoneNumber } = validateAndNormalizeCreateInput(input);
+	if (input.role === 'CLIENT' && !input.applicationId) {
+		throw new Error('Select an approved application for the client account.');
+	}
+	let approvedApplication: ApprovedClientApplicationCandidate | null = null;
+
+	if (input.role === 'CLIENT') {
+		if (!input.applicationId) {
+			throw new Error('Select an approved application for the client account.');
+		}
+
+		const application = await prisma.application.findFirst({
+			where: {
+				id: input.applicationId,
+				status: 'APPROVED',
+				clientUserId: null,
+			},
+			select: {
+				id: true,
+				ticketNumber: true,
+				fullName: true,
+				email: true,
+				phoneNumber: true,
+				submittedAt: true,
+				plan: {
+					select: {
+						id: true,
+						name: true,
+						slug: true,
+						monthlyPrice: true,
+						deviceCap: true,
+					},
+				},
+				branch: {
+					select: {
+						name: true,
+						city: true,
+						province: true,
+						address: true,
+						notes: true,
+					},
+				},
+			},
+		});
+
+		if (!application) {
+			throw new Error('Selected application is no longer available.');
+		}
+
+		const branch = getBranchSnapshot(application);
+		approvedApplication = {
+			id: application.id,
+			ticketNumber: application.ticketNumber,
+			fullName: application.fullName,
+			email: application.email,
+			phoneNumber: application.phoneNumber,
+			planId: application.plan.id,
+			planName: application.plan.name,
+			planSlug: application.plan.slug,
+			planMonthlyPrice: Number(application.plan.monthlyPrice),
+			planDeviceCap: Number(application.plan.deviceCap),
+			branchName: branch?.name ?? '',
+			branchCity: branch?.city ?? '',
+			branchProvince: branch?.province ?? '',
+			branchAddress: branch?.address ?? '',
+			branchNotes: branch?.notes ?? null,
+			submittedAt: application.submittedAt.toISOString(),
+		};
+	}
 
 	const password = generateTemporaryPassword();
 	const hashedPassword = await hashPassword(password);
@@ -223,6 +537,43 @@ export async function createUserAccount(input: CreateAccountInput): Promise<Crea
 		},
 	});
 
+	if (input.role === 'CLIENT' && approvedApplication) {
+		const startedAt = new Date();
+
+		// Default grace period: set the first billing due date to the 20th, two months from the start date.
+		const nextDueDate = (() => {
+			const d = new Date(startedAt);
+			// Advance two months
+			d.setMonth(d.getMonth() + 2);
+			// Set to 20th of that month
+			d.setDate(20);
+			// Normalize time to start of day
+			d.setHours(0, 0, 0, 0);
+			return d;
+		})();
+
+		await prisma.$transaction([
+			prisma.clientSubscription.create({
+				data: {
+					id: randomUUID(),
+					userId: created.user.id,
+					planId: approvedApplication.planId,
+					sourceApplicationId: approvedApplication.id,
+					deviceCap: approvedApplication.planDeviceCap,
+					monthlyPrice: approvedApplication.planMonthlyPrice,
+					status: 'active',
+					startedAt,
+					billingCycleDay: 20,
+					nextDueDate,
+				},
+			}),
+			prisma.application.update({
+				where: { id: approvedApplication.id },
+				data: { clientUserId: created.user.id },
+			}),
+		]);
+	}
+
 	await prisma.account.create({
 		data: {
 			id: randomUUID(),
@@ -240,11 +591,7 @@ export async function createUserAccount(input: CreateAccountInput): Promise<Crea
 
 export async function reactivateUserAccount(userId: string, input: CreateAccountInput): Promise<{ userId: string; tempPassword: string }> {
 	const requestHeaders = await headers();
-	const session = await auth.api.getSession({ headers: requestHeaders });
-
-	if (!session?.user) {
-		throw new Error('Unauthorized');
-	}
+	await requireAdminFromHeaders(requestHeaders);
 
 	const { name, email, phoneNumber } = validateAndNormalizeCreateInput(input);
 
@@ -289,17 +636,13 @@ export async function reactivateUserAccount(userId: string, input: CreateAccount
 export interface UpdateAccountInput {
 	name: string;
 	phoneNumber: string;
-	role: 'admin' | 'user';
+	role: 'ADMIN' | 'SUPERADMIN' | 'CLIENT';
 	twoFactorEnabled: boolean;
 }
 
 export async function updateUserAccount(userId: string, updates: UpdateAccountInput): Promise<{ success: boolean }> {
 	const requestHeaders = await headers();
-	const session = await auth.api.getSession({ headers: requestHeaders });
-
-	if (!session?.user) {
-		throw new Error('Unauthorized');
-	}
+	await requireAdminFromHeaders(requestHeaders);
 
 	const name = updates.name.trim();
 	const phoneNumber = normalizePHPhoneNumber(updates.phoneNumber);

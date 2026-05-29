@@ -1,10 +1,21 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Mail, User, Lock, Shield, Phone, CheckCircle } from 'lucide-react';
+import { X, Mail, User, Shield, Phone, CheckCircle, Search, ShieldCheck, UserCircle2 } from 'lucide-react';
 import { GlassCard } from '../../../components/GlassCard';
 import { normalizeEmail, formatPhoneDigitsForInput, validatePhoneDigits, validateUserEmail, validateUserName } from '@/lib/userAccountValidation';
+import type { ApprovedClientApplicationCandidate } from '../../../_actions/users';
+import { fetchApprovedApplicationsForClientCreation } from '../../../_actions/users';
+
+const INITIAL_FORM_DATA: UserFormData = {
+  name: '',
+  email: '',
+  phoneNumber: '',
+  role: 'ADMIN',
+  twoFactorEnabled: false,
+  applicationId: null,
+};
 
 interface AddUserModalProps {
   isOpen: boolean;
@@ -16,8 +27,9 @@ export interface UserFormData {
   name: string;
   email: string;
   phoneNumber: string;
-  role: 'admin' | 'user';
+  role: 'ADMIN' | 'SUPERADMIN' | 'CLIENT';
   twoFactorEnabled: boolean;
+  applicationId?: string | null;
 }
 
 interface Validations {
@@ -27,13 +39,13 @@ interface Validations {
 }
 
 export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
-  const [formData, setFormData] = useState<UserFormData>({
-    name: '',
-    email: '',
-    phoneNumber: '',
-    role: 'user',
-    twoFactorEnabled: false,
-  });
+  const [formData, setFormData] = useState<UserFormData>(INITIAL_FORM_DATA);
+
+  const [approvedApplications, setApprovedApplications] = useState<ApprovedClientApplicationCandidate[]>([]);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<string>('');
+  const [applicationSearchQuery, setApplicationSearchQuery] = useState('');
+  const [isLoadingApplications, setIsLoadingApplications] = useState(false);
+  const [applicationLoadError, setApplicationLoadError] = useState('');
 
   const [phoneDigits, setPhoneDigits] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -44,6 +56,31 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [emailWarning, setEmailWarning] = useState<string>('');
+
+  const selectedApplication = useMemo(
+    () => approvedApplications.find(application => application.id === selectedApplicationId) ?? null,
+    [approvedApplications, selectedApplicationId],
+  );
+
+  const filteredApplications = useMemo(() => {
+    const normalizedQuery = applicationSearchQuery.trim().toLowerCase();
+
+    return approvedApplications.filter(application => {
+      if (normalizedQuery.length === 0) {
+        return true;
+      }
+
+      return (
+        application.ticketNumber.toLowerCase().includes(normalizedQuery) ||
+        application.fullName.toLowerCase().includes(normalizedQuery) ||
+        application.email.toLowerCase().includes(normalizedQuery) ||
+        application.planName.toLowerCase().includes(normalizedQuery) ||
+        application.branchName.toLowerCase().includes(normalizedQuery) ||
+        application.branchCity.toLowerCase().includes(normalizedQuery) ||
+        application.branchProvince.toLowerCase().includes(normalizedQuery)
+      );
+    });
+  }, [approvedApplications, applicationSearchQuery]);
 
   const commonDomainTypos: Record<string, string> = {
     'gmial.com': 'gmail.com',
@@ -77,6 +114,28 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
     return { valid: true };
   };
 
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const loadApplications = async () => {
+      setIsLoadingApplications(true);
+
+      try {
+        const applications = await fetchApprovedApplicationsForClientCreation();
+        setApprovedApplications(Array.isArray(applications) ? applications : []);
+      } catch (error) {
+        setApprovedApplications([]);
+        setApplicationLoadError(error instanceof Error ? error.message : 'Failed to load approved applications.');
+      } finally {
+        setIsLoadingApplications(false);
+      }
+    };
+
+    void Promise.resolve().then(() => loadApplications());
+  }, [isOpen]);
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -89,8 +148,51 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
     const phoneValidation = validatePhoneDigits(phoneDigits);
     if (!phoneValidation.valid) newErrors.phoneNumber = phoneValidation.error || '';
 
+    if (formData.role === 'CLIENT' && !formData.applicationId) {
+      newErrors.applicationId = 'Select an approved application to create a client account.';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleRoleSelect = (role: UserFormData['role']) => {
+    setFormData(prev => ({
+      ...prev,
+      role,
+      applicationId: role === 'CLIENT' ? prev.applicationId : null,
+    }));
+
+    if (role !== 'CLIENT') {
+      setSelectedApplicationId('');
+      setApplicationSearchQuery('');
+      setErrors(prev => {
+        const next = { ...prev };
+        delete next.applicationId;
+        return next;
+      });
+    }
+  };
+
+  const handleApprovedApplicationSelect = (application: ApprovedClientApplicationCandidate) => {
+    setSelectedApplicationId(application.id);
+    setFormData(prev => ({
+      ...prev,
+      applicationId: application.id,
+      name: application.fullName,
+      email: application.email,
+      phoneNumber: application.phoneNumber,
+    }));
+
+    setPhoneDigits(application.phoneNumber.replace(/\D/g, '').slice(-10));
+    setErrors(prev => {
+      const next = { ...prev };
+      delete next.applicationId;
+      delete next.name;
+      delete next.email;
+      delete next.phoneNumber;
+      return next;
+    });
   };
 
   const handlePhoneDigitChange = (value: string) => {
@@ -136,6 +238,8 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
     }
   };
 
+  const showAccountFields = formData.role !== 'CLIENT' || Boolean(selectedApplication);
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -168,13 +272,16 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
         name: '',
         email: '',
         phoneNumber: '',
-        role: 'user',
+        role: 'ADMIN',
         twoFactorEnabled: false,
+        applicationId: null,
       });
       setPhoneDigits('');
       setErrors({});
       setValidations({ name: false, email: false, phoneNumber: false });
       setEmailWarning('');
+      setSelectedApplicationId('');
+      setApplicationSearchQuery('');
       onClose();
     } catch (error) {
       setErrors({ submit: error instanceof Error ? error.message : 'Failed to create user' });
@@ -222,6 +329,130 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
           <div className="overflow-y-auto flex-1 px-6">
             {/* Form */}
             <form onSubmit={handleSubmit} className="pb-6">
+              {/* Role Cards */}
+              <div className="mb-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-slate-300">Account type</p>
+                  <p className="text-xs text-slate-500">Choose the account kind before entering details</p>
+                </div>
+                <div className="grid gap-3 md:grid-cols-3">
+                  {[
+                    { value: 'ADMIN', label: 'Admin', description: 'Standard internal admin access', icon: Shield },
+                    { value: 'SUPERADMIN', label: 'Super Admin', description: 'Full administrative access', icon: ShieldCheck },
+                    { value: 'CLIENT', label: 'Client', description: 'Provision from an approved application', icon: UserCircle2 },
+                  ].map(option => {
+                    const Icon = option.icon;
+                    const active = formData.role === option.value;
+
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => handleRoleSelect(option.value as UserFormData['role'])}
+                        className={`rounded-2xl border p-4 text-left transition-all ${active ? 'border-cyan-500/40 bg-cyan-500/10' : 'border-white/10 bg-white/5 hover:bg-white/8'}`}
+                      >
+                        <div className={`mb-3 inline-flex rounded-xl p-2 ${active ? 'bg-cyan-500/15 text-cyan-200' : 'bg-white/5 text-slate-300'}`}>
+                          <Icon size={18} />
+                        </div>
+                        <p className="font-semibold text-white">{option.label}</p>
+                        <p className="mt-1 text-xs text-slate-400">{option.description}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {formData.role === 'CLIENT' && (
+                <div className="mb-5 space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div>
+                      <p className="text-sm font-medium text-white">Approved application</p>
+                      <p className="text-xs text-slate-500">Search and pick the approved application that will provision the client account and subscription.</p>
+                    </div>
+                    {selectedApplication && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedApplicationId('');
+                          setFormData(prev => ({ ...prev, applicationId: null }));
+                          setErrors(prev => {
+                            const next = { ...prev };
+                            delete next.applicationId;
+                            return next;
+                          });
+                        }}
+                        className="text-xs font-medium text-cyan-300 hover:text-cyan-200"
+                      >
+                        Clear selection
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="relative">
+                    <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                    <input
+                      type="text"
+                      value={applicationSearchQuery}
+                      onChange={e => setApplicationSearchQuery(e.target.value)}
+                      placeholder="Search by ticket, name, email, plan, branch..."
+                      className="w-full rounded-xl border border-white/10 bg-slate-950/60 py-3 pl-11 pr-4 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-cyan-500/50 focus:bg-white/8"
+                    />
+                  </div>
+
+                  {isLoadingApplications ? (
+                    <p className="text-sm text-slate-400">Loading approved applications...</p>
+                  ) : applicationLoadError ? (
+                    <p className="text-sm text-red-300">{applicationLoadError}</p>
+                  ) : (
+                    <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+                      {filteredApplications.length === 0 ? (
+                        <div className="rounded-xl border border-dashed border-white/10 px-4 py-6 text-center text-sm text-slate-400">
+                          No approved applications match your search.
+                        </div>
+                      ) : (
+                        filteredApplications.map(application => {
+                          const isSelected = selectedApplicationId === application.id;
+
+                          return (
+                            <button
+                              key={application.id}
+                              type="button"
+                              onClick={() => handleApprovedApplicationSelect(application)}
+                              className={`w-full rounded-xl border p-4 text-left transition-all ${isSelected ? 'border-cyan-500/40 bg-cyan-500/10' : 'border-white/10 bg-white/5 hover:bg-white/8'}`}
+                            >
+                              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                                <div className="space-y-1">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-sm font-semibold text-white">{application.fullName}</span>
+                                    <span className="rounded-full border border-white/10 bg-slate-950/40 px-2 py-0.5 text-xs text-slate-300">{application.ticketNumber}</span>
+                                  </div>
+                                  <p className="text-xs text-slate-400 break-words">{application.email}</p>
+                                  <p className="text-xs text-slate-400 break-words">{application.planName} · PHP {application.planMonthlyPrice.toLocaleString()} / month · {application.planDeviceCap} devices</p>
+                                  <p className="text-xs text-slate-500 break-words">{application.branchName}{application.branchCity ? ` · ${application.branchCity}` : ''}{application.branchProvince ? `, ${application.branchProvince}` : ''}</p>
+                                </div>
+                                <div className="text-xs text-slate-500 md:text-right">
+                                  {isSelected ? 'Selected' : 'Tap to select'}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
+
+                  {selectedApplication && (
+                    <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-4 text-sm text-cyan-100">
+                      <p className="font-medium text-white">{selectedApplication.fullName}</p>
+                      <p className="mt-1 text-xs text-cyan-100/80">Client account will be created from this approved application and the subscription will use {selectedApplication.planName}.</p>
+                    </div>
+                  )}
+
+                  {errors.applicationId && <p className="text-red-400 text-xs">{errors.applicationId}</p>}
+                </div>
+              )}
+
+              <div className={!showAccountFields ? 'hidden' : ''}>
               {/* Form Grid - Two Columns */}
               <div className="grid grid-cols-2 gap-4 mb-4">
                 {/* Name Field - Full Width */}
@@ -318,7 +549,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
                   <p className="text-slate-500 text-xs mt-1">Enter 10 digits for Philippine mobile numbers (91X XXXX XXXX)</p>
                 </div>
 
-                {/* Role Field */}
+                {/* Role Summary */}
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
                     <span className="flex items-center gap-2">
@@ -326,19 +557,9 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
                       Role
                     </span>
                   </label>
-                  <select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all cursor-pointer"
-                  >
-                    <option value="user" className="bg-slate-900">
-                      User
-                    </option>
-                    <option value="admin" className="bg-slate-900">
-                      Admin
-                    </option>
-                  </select>
+                  <div className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white">
+                    {formData.role === 'ADMIN' ? 'Admin' : formData.role === 'SUPERADMIN' ? 'Super Admin' : 'Client'}
+                  </div>
                 </div>
 
                 {/* Two Factor Toggle - Full Width */}
@@ -356,6 +577,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
                   </label>
                   <span className="text-xs text-slate-500">Recommended for security</span>
                 </div>
+              </div>
               </div>
 
               {/* Submit Error */}

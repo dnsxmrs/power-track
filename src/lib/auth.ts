@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { nextCookies } from 'better-auth/next-js';
 import { admin, bearer, emailOTP, twoFactor } from 'better-auth/plugins';
+import { adminAc, userAc } from 'better-auth/plugins/admin/access';
 import { expo } from '@better-auth/expo';
 import { prisma } from './prisma';
 import nodemailer from 'nodemailer';
@@ -84,7 +85,15 @@ export const auth = betterAuth({
         twoFactor(),
         // Expo plugin enables the Better Auth Expo integration (mobile clients)
         expo(),
-        admin(),
+        admin({
+            defaultRole: 'CLIENT',
+            adminRoles: ['ADMIN', 'SUPERADMIN'],
+            roles: {
+                ADMIN: adminAc,
+                SUPERADMIN: adminAc,
+                CLIENT: userAc,
+            },
+        }),
         bearer(),
         nextCookies(),
         emailOTP({
@@ -129,3 +138,19 @@ export const auth = betterAuth({
 });
 
 export type Session = typeof auth.$Infer.Session;
+
+// Helper: normalize role values from different sources (enum vs lowercase string)
+export function isAdminRole(role?: string | null) {
+    if (!role) return false;
+    const normalized = role.toString().toUpperCase();
+    return normalized === 'ADMIN' || normalized === 'SUPERADMIN';
+}
+
+// Require that the session exists and that the user has ADMIN or SUPERADMIN role.
+export async function requireAdminFromHeaders(headers: Headers) {
+    const session = await auth.api.getSession({ headers });
+    if (!session?.user) throw new Error('Unauthorized');
+    const role = (session.user as { role?: string | null }).role ?? undefined;
+    if (!isAdminRole(role)) throw new Error('Forbidden');
+    return session;
+}
