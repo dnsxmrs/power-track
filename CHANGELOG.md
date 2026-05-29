@@ -1,3 +1,32 @@
+# [1.10.0](https://github.com/dnsxmrs/power-track/compare/v1.9.0...v1.10.0) (2026-05-29)
+
+
+### Bug Fixes
+
+* satisfy lint in merged review application action ([56dbb16](https://github.com/dnsxmrs/power-track/commit/56dbb16e9d5e1f533087afedeebd6a48d8e2b263))
+* update default values in settings form inputs for consistency ([0d41a67](https://github.com/dnsxmrs/power-track/commit/0d41a676b4e294f60b293ccc5ef00526104335b5))
+
+
+### Features
+
+* add payment and subscription management actions and API endpoints ([2a38d5d](https://github.com/dnsxmrs/power-track/commit/2a38d5d8f205a291890730a007c2957ef550778d))
+* **application:** implement email notifications for application status updates ([8ed7e93](https://github.com/dnsxmrs/power-track/commit/8ed7e930bdc9c606d5dc6f31e43071b1729316cd))
+* **applications:** add review and view modals for application management ([e2c3816](https://github.com/dnsxmrs/power-track/commit/e2c38169097fa17283f943c0dcda8de00d4c77b9))
+* **applications:** enhance application model and forms with additional branch details ([4ae97aa](https://github.com/dnsxmrs/power-track/commit/4ae97aafca7543c35d1500a62417bf57780cb011))
+* **auth:** implement role-based access control with admin verification ([3d818c3](https://github.com/dnsxmrs/power-track/commit/3d818c36bdd7ab152a239b8647914599ed9c5f24))
+* **dashboard:** refactor dashboard components and implement lazy loading for performance optimization ([5171aef](https://github.com/dnsxmrs/power-track/commit/5171aeff811a89da3d11b25a4e148c05c79d5ac4))
+* **plans:** add functionality for managing subscription plans ([a2da279](https://github.com/dnsxmrs/power-track/commit/a2da2791902b4d7c3fdf8bece098f2187e98a84c))
+* **settings:** add settings management with create and update functionality ([eedb9af](https://github.com/dnsxmrs/power-track/commit/eedb9af9e7154b2de4c2fa5f7ae4af893e80169c))
+* **settings:** update currency formatting and enhance price input display ([8ae9263](https://github.com/dnsxmrs/power-track/commit/8ae9263ce03bcb6f5ec59cc084cd941948397e8d))
+* **sidebar:** enhance user display and hide non-functional pages ([d4b015c](https://github.com/dnsxmrs/power-track/commit/d4b015c48b0769b17b227b9cf7a8062c35660852))
+* **Sidebar:** update plans icon to LayersIcon for consistency ([df40c73](https://github.com/dnsxmrs/power-track/commit/df40c73f20741c2a752db545591eb516cdfa90f3))
+* **users:** add billing due date calculation for client subscriptions during account creation ([30900b2](https://github.com/dnsxmrs/power-track/commit/30900b291e7317ac49f70fd1cc7996f61a2cd301))
+* **users:** add client subscription details to user management and edit modal ([bb064ec](https://github.com/dnsxmrs/power-track/commit/bb064ec7db384bb4ac4ba282bc720265a3b78013))
+* **users:** extend user roles to include 'client' and update related components for client account management ([ac41a64](https://github.com/dnsxmrs/power-track/commit/ac41a649f0fbf727dd2b27c64e2f367f06da4b2b))
+* **users:** standardize user role naming to uppercase for consistency across components ([7bb4417](https://github.com/dnsxmrs/power-track/commit/7bb44171a840ba88843b15b5e5932484733d05ad))
+* **users:** update billing due date logic to include default grace period for client accounts ([fd4045d](https://github.com/dnsxmrs/power-track/commit/fd4045df1e8a95d22cfc5e9d21aadccf781a44a2))
+* **users:** update user roles to include 'superadmin' and adjust related components ([b75c2c1](https://github.com/dnsxmrs/power-track/commit/b75c2c1d594ea3756d778f41938102868d06fa30))
+
 # [1.10.0-beta.5](https://github.com/dnsxmrs/power-track/compare/v1.10.0-beta.4...v1.10.0-beta.5) (2026-05-29)
 
 
