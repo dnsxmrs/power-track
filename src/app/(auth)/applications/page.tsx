@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ConfirmationModal } from './components/confirmationmodal';
 import {
@@ -26,8 +26,10 @@ import { AddApplicationModal, type AddApplicationFormData } from './components/a
 import { ReviewModal, type ApplicationDecision } from './components/reviewmodal';
 import { ViewModal } from './components/viewmodal';
 import { GlassCard } from '../../components/GlassCard';
-import { addApplication, type CreateApplicationResult } from '@/app/_actions/application/addapplication';
+import { addApplication } from '@/app/_actions/application/addapplication';
+import { fetchApplicationsForManagement } from '@/app/_actions/application/getapplication';
 import { reviewApplication } from '@/app/_actions/application/reviewapplication';
+import { fetchPlansForManagement } from '@/app/_actions/plans/getplans';
 
 export type ApplicationStatus = 'submitted' | 'under_review' | 'approved' | 'rejected' | 'awaiting_downpayment' | 'active';
 type StatusFilter = ApplicationStatus | 'all';
@@ -136,18 +138,6 @@ function formatPhoneNumber(phoneNumber: string): string {
 	return phoneNumber.replace(/\s+/g, ' ').trim();
 }
 
-function getPlanLabel(planSlug: string): string {
- 	if (planSlug === 'starter') return 'Starter';
- 	if (planSlug === 'growth') return 'Growth';
- 	if (planSlug === 'enterprise') return 'Enterprise';
- 	// fallback: capitalize
- 	return planSlug ? planSlug.charAt(0).toUpperCase() + planSlug.slice(1) : '';
-}
-
-function getStatusLabel(status: ApplicationStatus): string {
-	return STATUS_META[status].label;
-}
-
 export default function ApplicationsPage() {
 	const [applications, setApplications] = useState<ApplicationItem[]>([]);
 	const [planOptions, setPlanOptions] = useState<Array<{ slug: string; name: string }>>([]);
@@ -173,29 +163,18 @@ export default function ApplicationsPage() {
 		[planOptions],
 	);
 
-	const loadApplications = async () => {
+	const loadApplications = useCallback(async () => {
 		setIsLoadingApplications(true);
 		setLoadError(null);
 
 		try {
-			const [applicationsResponse, plansResponse] = await Promise.all([
-				fetch('/api/applications', { credentials: 'include' }),
-				fetch('/api/plans', { credentials: 'include' }),
+			const [items, plans] = await Promise.all([
+				fetchApplicationsForManagement(),
+				fetchPlansForManagement(),
 			]);
 
-			if (!applicationsResponse.ok) {
-				throw new Error('Failed to fetch applications.');
-			}
-
-			if (plansResponse.ok) {
-				const plans = await plansResponse.json();
-				setPlanOptions(Array.isArray(plans) ? plans.map((plan: any) => ({ slug: plan.slug, name: plan.name })) : []);
-			} else {
-				setPlanOptions([]);
-			}
-
-			const items = (await applicationsResponse.json()) as ApplicationItem[];
-			setApplications(Array.isArray(items) ? items : []);
+			setPlanOptions(plans.map(plan => ({ slug: plan.slug, name: plan.name })));
+			setApplications(items);
 		} catch (error) {
 			setApplications([]);
 			setPlanOptions([]);
@@ -203,11 +182,11 @@ export default function ApplicationsPage() {
 		} finally {
 			setIsLoadingApplications(false);
 		}
-	};
+	}, []);
 
 	useEffect(() => {
-		void loadApplications();
-	}, []);
+		void Promise.resolve().then(() => loadApplications());
+	}, [loadApplications]);
 
 	const filteredApplications = useMemo(() => {
 		const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -607,13 +586,16 @@ export default function ApplicationsPage() {
 			/>
 
 			<AddApplicationModal
+				key={isAddApplicationModalOpen ? 'open' : 'closed'}
 				isOpen={isAddApplicationModalOpen}
 				onClose={() => setIsAddApplicationModalOpen(false)}
 				onSubmit={handleCreateApplication}
 				isSubmitting={isCreatingApplication}
+				planOptions={planOptions}
 			/>
 
 			<ReviewModal
+				key={`${selectedApplication?.id ?? 'none'}-${isReviewModalOpen ? 'open' : 'closed'}`}
 				isOpen={isReviewModalOpen}
 				application={selectedApplication}
 				onClose={() => {

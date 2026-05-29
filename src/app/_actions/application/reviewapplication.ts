@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { requireAdminFromHeaders } from '@/lib/auth';
+import type { ApplicationStatus } from '@/generated/prisma/enums';
 import { sendApplicationAwaitingDownpaymentEmail, sendApplicationApprovedEmail, sendApplicationRejectedEmail } from './email';
 
 export type ReviewApplicationInput = {
@@ -16,8 +17,7 @@ export async function reviewApplication(input: ReviewApplicationInput): Promise<
 	const requestHeaders = await headers();
 	const session = await requireAdminFromHeaders(requestHeaders);
 
-	const database = prisma as any;
-	const statusMap: Record<ReviewApplicationInput['status'], string> = {
+	const statusMap: Record<ReviewApplicationInput['status'], ApplicationStatus> = {
 		approved: 'APPROVED',
 		rejected: 'REJECTED',
 		awaiting_downpayment: 'AWAITING_DOWNPAYMENT',
@@ -25,7 +25,7 @@ export async function reviewApplication(input: ReviewApplicationInput): Promise<
 	};
 
 	const now = new Date();
-	await database.application.update({
+	await prisma.application.update({
 		where: { id: input.applicationId },
 		data: {
 			status: statusMap[input.status],
@@ -58,7 +58,7 @@ export async function reviewApplication(input: ReviewApplicationInput): Promise<
 			if (app?.email) {
 				const now = new Date();
 				// base date is 7 days from now
-				let installDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+				const installDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 				const day = installDate.getDay(); // 0 = Sun, 6 = Sat
 				if (day === 6) {
 					// Saturday -> add 2 days to Monday

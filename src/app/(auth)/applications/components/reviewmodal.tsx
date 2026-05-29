@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { AlertTriangle, BadgeCheck, Clock3, X, XCircle } from 'lucide-react';
 import { GlassCard } from '../../../components/GlassCard';
-import type { ApplicationItem, ApplicationStatus } from '../page';
+import type { ApplicationItem } from '../page';
 
 export type ApplicationDecision = {
 	status: 'approved' | 'rejected' | 'awaiting_downpayment' | 'under_review';
@@ -26,8 +26,26 @@ const OUTCOME_OPTIONS: Array<{ value: ApplicationDecision['status']; label: stri
 ];
 
 export function ReviewModal({ isOpen, onClose, onSubmit, application }: ReviewModalProps) {
-	const [status, setStatus] = useState<ApplicationDecision['status']>('approved');
-	const [note, setNote] = useState('');
+	const [status, setStatus] = useState<ApplicationDecision['status']>(() => {
+		if (!application) {
+			return 'approved';
+		}
+
+		if (application.status === 'submitted') {
+			return 'under_review';
+		}
+
+		if (application.status === 'under_review') {
+			return 'approved';
+		}
+
+		if (application.status === 'active') {
+			return 'approved';
+		}
+
+		return application.status;
+	});
+	const [note, setNote] = useState(() => application?.statusReason ?? '');
 	const imageDocuments = application?.documents.filter(document => document.mimeType?.startsWith('image/')) ?? [];
 	const branches = application?.branches.length
 		? application.branches
@@ -40,15 +58,6 @@ export function ReviewModal({ isOpen, onClose, onSubmit, application }: ReviewMo
 				notes: application.branchNotes || '',
 			}]
 			: [];
-
-	useEffect(() => {
-		if (!isOpen || !application) {
-			return;
-		}
-
-		setStatus(application.status === 'submitted' ? 'under_review' : application.status === 'under_review' ? 'approved' : application.status);
-		setNote(application.reason ?? '');
-	}, [application, isOpen]);
 
 	if (!isOpen || !application) {
 		return null;

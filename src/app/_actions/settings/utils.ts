@@ -34,7 +34,7 @@ export function parseOptionalString(formData: FormData, key: string): string | n
 	return null;
 }
 
-export function parseIntegerField(formData: FormData, key: string, fallback: number | null = null): number | null {
+export function parseIntegerField(formData: FormData, key: string, fallback: number | undefined = undefined): number | undefined {
 	const raw = formData.get(key);
 	if (typeof raw === 'string' && raw !== '') {
 		const n = Number(raw);

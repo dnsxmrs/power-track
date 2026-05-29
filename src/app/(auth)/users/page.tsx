@@ -578,6 +578,7 @@ export default function UsersPage() {
         </motion.div>
 
         <AddUserModal
+          key={isAddUserModalOpen ? 'open' : 'closed'}
           isOpen={isAddUserModalOpen}
           onClose={() => setIsAddUserModalOpen(false)}
           onSubmit={handleAddUser}

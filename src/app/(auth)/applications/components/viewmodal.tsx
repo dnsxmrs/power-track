@@ -127,7 +127,7 @@ export function ViewModal({ isOpen, onClose, application }: ViewModalProps) {
 							</div>
 							<div className="rounded-xl border border-white/10 bg-white/5 p-4">
 								<p className="text-xs uppercase tracking-[0.2em] text-slate-500">Reviewed by</p>
-								<p className="mt-2 text-sm text-white break-words">{application.reviewedBy ?? 'Not yet reviewed'}</p>
+								<p className="mt-2 text-sm text-white break-words">{application.reviewedByName ?? 'Not yet reviewed'}</p>
 							</div>
 						</div>
 
@@ -166,10 +166,10 @@ export function ViewModal({ isOpen, onClose, application }: ViewModalProps) {
 							</div>
 						)}
 
-						{application.reason && (
+						{application.statusReason && (
 							<div className="rounded-xl border border-fuchsia-500/20 bg-fuchsia-500/10 p-4">
 								<p className="text-xs uppercase tracking-[0.2em] text-fuchsia-200">Review note</p>
-								<p className="mt-2 text-sm text-fuchsia-100 break-words">{application.reason}</p>
+								<p className="mt-2 text-sm text-fuchsia-100 break-words">{application.statusReason}</p>
 							</div>
 						)}
 					</div>

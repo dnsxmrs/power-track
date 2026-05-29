@@ -9,14 +9,12 @@ export async function deletePlan(planId: string) {
 	const requestHeaders = await headers();
 	try {
 		await requireAdminFromHeaders(requestHeaders);
-	} catch (err) {
+	} catch {
 		throw new Error('Unauthorized');
 	}
 
-	const database = prisma as any;
-
 	// Do a soft-disable rather than hard delete since apps reference plans (onDelete: Restrict)
-	await database.subscriptionPlan.update({ where: { id: planId }, data: { isActive: false } });
+	await prisma.subscriptionPlan.update({ where: { id: planId }, data: { isActive: false } });
 
 	revalidatePath('/plans');
 }

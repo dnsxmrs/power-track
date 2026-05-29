@@ -2,10 +2,20 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Mail, User, Lock, Shield, Phone, CheckCircle, Search, BadgeCheck, ShieldCheck, UserCircle2 } from 'lucide-react';
+import { X, Mail, User, Shield, Phone, CheckCircle, Search, ShieldCheck, UserCircle2 } from 'lucide-react';
 import { GlassCard } from '../../../components/GlassCard';
 import { normalizeEmail, formatPhoneDigitsForInput, validatePhoneDigits, validateUserEmail, validateUserName } from '@/lib/userAccountValidation';
 import type { ApprovedClientApplicationCandidate } from '../../../_actions/users';
+import { fetchApprovedApplicationsForClientCreation } from '../../../_actions/users';
+
+const INITIAL_FORM_DATA: UserFormData = {
+  name: '',
+  email: '',
+  phoneNumber: '',
+  role: 'ADMIN',
+  twoFactorEnabled: false,
+  applicationId: null,
+};
 
 interface AddUserModalProps {
   isOpen: boolean;
@@ -29,14 +39,7 @@ interface Validations {
 }
 
 export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
-  const [formData, setFormData] = useState<UserFormData>({
-    name: '',
-    email: '',
-    phoneNumber: '',
-    role: 'ADMIN',
-    twoFactorEnabled: false,
-    applicationId: null,
-  });
+  const [formData, setFormData] = useState<UserFormData>(INITIAL_FORM_DATA);
 
   const [approvedApplications, setApprovedApplications] = useState<ApprovedClientApplicationCandidate[]>([]);
   const [selectedApplicationId, setSelectedApplicationId] = useState<string>('');
@@ -77,7 +80,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
         application.branchProvince.toLowerCase().includes(normalizedQuery)
       );
     });
-  }, [approvedApplications, applicationSearchQuery, selectedApplicationId]);
+  }, [approvedApplications, applicationSearchQuery]);
 
   const commonDomainTypos: Record<string, string> = {
     'gmial.com': 'gmail.com',
@@ -116,32 +119,11 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
       return;
     }
 
-    setFormData({
-      name: '',
-      email: '',
-      phoneNumber: '',
-      role: 'ADMIN',
-      twoFactorEnabled: false,
-      applicationId: null,
-    });
-    setPhoneDigits('');
-    setErrors({});
-    setValidations({ name: false, email: false, phoneNumber: false });
-    setEmailWarning('');
-    setSelectedApplicationId('');
-    setApplicationSearchQuery('');
-    setApplicationLoadError('');
-
     const loadApplications = async () => {
       setIsLoadingApplications(true);
 
       try {
-        const response = await fetch('/api/applications/approved', { credentials: 'include' });
-        if (!response.ok) {
-          throw new Error('Failed to load approved applications.');
-        }
-
-        const applications = (await response.json()) as ApprovedClientApplicationCandidate[];
+        const applications = await fetchApprovedApplicationsForClientCreation();
         setApprovedApplications(Array.isArray(applications) ? applications : []);
       } catch (error) {
         setApprovedApplications([]);
@@ -151,7 +133,7 @@ export function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
       }
     };
 
-    void loadApplications();
+    void Promise.resolve().then(() => loadApplications());
   }, [isOpen]);
 
   const validateForm = (): boolean => {

@@ -76,18 +76,6 @@ async function uploadApplicationDocument(input: {
 export async function addApplication(formData: FormData): Promise<CreateApplicationResult> {
 	const requestHeaders = await headers();
 	await requireAdminFromHeaders(requestHeaders);
-	const database = prisma as typeof prisma & {
-		subscriptionPlan: {
-			findUnique: (args: any) => Promise<{ id: string; name: string; slug: string } | null>;
-		};
-		branch: {
-			findFirst: (args: any) => Promise<{ id: string } | null>;
-			create: (args: any) => Promise<{ id: string }>;
-		};
-		application: {
-			create: (args: any) => Promise<unknown>;
-		};
-	};
 
 	const fullName = getTextValue(formData, 'fullName');
 	const email = getTextValue(formData, 'email');
@@ -109,7 +97,7 @@ export async function addApplication(formData: FormData): Promise<CreateApplicat
 	const validIdFrontFile = getRequiredFile(formData, 'validIdFrontFile');
 	const validIdBackFile = getRequiredFile(formData, 'validIdBackFile');
 
-	const plan = await database.subscriptionPlan.findUnique({
+	const plan = await prisma.subscriptionPlan.findUnique({
 		where: { slug: planSlug },
 		select: { id: true, name: true, slug: true },
 	});
@@ -118,7 +106,7 @@ export async function addApplication(formData: FormData): Promise<CreateApplicat
 		throw new Error('Selected plan does not exist.');
 	}
 
-	const branch = await database.branch.findFirst({
+	const branch = await prisma.branch.findFirst({
 		where: {
 			OR: [{ name: branchInput }, { code: branchInput }],
 		},
@@ -150,13 +138,13 @@ export async function addApplication(formData: FormData): Promise<CreateApplicat
 						continue;
 					}
 
-					const existing = await database.branch.findFirst({ where: { OR: [{ name: b.name }, { code: b.name }] }, select: { id: true } });
+					const existing = await prisma.branch.findFirst({ where: { OR: [{ name: b.name }, { code: b.name }] }, select: { id: true } });
 					if (existing) {
 						branchIds.push(existing.id);
 					} else {
 						const baseCode = slugifyBranchCode(branchName) || 'branch';
 						const uniqueCode = `${baseCode}-${String(Date.now()).slice(-6)}`;
-						const created = await database.branch.create({
+						const created = await prisma.branch.create({
 							data: {
 								name: branchName,
 								code: uniqueCode,
@@ -171,7 +159,7 @@ export async function addApplication(formData: FormData): Promise<CreateApplicat
 				}
 				firstBranchId = branchIds[0] ?? firstBranchId;
 			}
-		} catch (err) {
+		} catch {
 			// ignore parse errors and fallback to single branch behavior
 		}
 	}
@@ -194,7 +182,7 @@ export async function addApplication(formData: FormData): Promise<CreateApplicat
 		uploadApplicationDocument({ folder: 'applications/valid-ids/back', applicationId, file: validIdBackFile }),
 	]);
 
-	await database.application.create({
+	await prisma.application.create({
 		data: {
 			id: applicationId,
 			ticketNumber,

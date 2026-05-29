@@ -120,8 +120,21 @@ function normalizeRole(role: string | null | undefined): 'ADMIN' | 'SUPERADMIN' 
 	return 'CLIENT';
 }
 
-function getBranchSnapshot(application: any) {
-	const snapshot = Array.isArray(application.branchSnapshots) ? application.branchSnapshots[0] : null;
+type BranchSnapshot = {
+	name?: string | null;
+	city?: string | null;
+	province?: string | null;
+	address?: string | null;
+	notes?: string | null;
+};
+
+type ApplicationBranchLike = {
+	branchSnapshots?: unknown;
+	branch?: BranchSnapshot | null;
+};
+
+function getBranchSnapshot(application: ApplicationBranchLike) {
+	const snapshot = Array.isArray(application.branchSnapshots) ? (application.branchSnapshots[0] as BranchSnapshot | undefined) : null;
 
 	if (snapshot) {
 		return {
