@@ -13,6 +13,7 @@ import {
   UsersIcon,
   ClipboardListIcon,
   FileTextIcon,
+  LayersIcon,
   CreditCardIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -31,7 +32,7 @@ const NAV_ITEMS = [
   { id: 'applications' as PageType, label: 'Applications', icon: ClipboardListIcon, href: '/applications' },
   { id: 'subscriptions' as PageType, label: 'Subscriptions', icon: FileTextIcon, href: '/subscriptions' },
   { id: 'payments' as PageType, label: 'Payments', icon: CreditCardIcon, href: '/payments' },
-  { id: 'plans' as PageType, label: 'Plans', icon: ClipboardListIcon, href: '/plans' },
+  { id: 'plans' as PageType, label: 'Plans', icon: LayersIcon, href: '/plans' },
   { id: 'users' as PageType, label: 'Users', icon: UsersIcon, href: '/users' },
   { id: 'settings' as PageType, label: 'Settings', icon: SettingsIcon, href: '/settings' },
 ] as const;
