@@ -39,7 +39,7 @@ const NAV_ITEMS = [
 
 // Pages that are not yet functional (mocked) and should be hidden from the nav.
 // Update this set to show/hide pages as features are implemented.
-const HIDDEN_PAGES = new Set<PageType>(['devices', 'alerts', 'branches', 'reports']);
+const HIDDEN_PAGES = new Set<PageType>(['devices', 'alerts', 'branches']);
 
 function getActivePage(pathname: string): PageType {
   for (const item of NAV_ITEMS) {
