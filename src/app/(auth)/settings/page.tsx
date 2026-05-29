@@ -50,29 +50,29 @@ export default async function SettingsPage({ searchParams }: Props) {
 								<label className="block text-sm font-medium text-slate-300 mb-2" htmlFor="platformName">
 									Platform name
 								</label>
-								<input id="platformName" name="platformName" defaultValue={isCreating ? undefined : settings.platformName ?? ''} placeholder="PowerTrack" className="glass-input w-full bg-transparent px-4 py-2 text-white outline-none rounded-lg border border-white/10" />
+								<input id="platformName" name="platformName" defaultValue="" placeholder="PowerTrack" className="glass-input w-full bg-transparent px-4 py-2 text-white outline-none rounded-lg border border-white/10" />
 							</div>
 							<div>
 								<label className="block text-sm font-medium text-slate-300 mb-2" htmlFor="supportEmail">
 									Support email
 								</label>
-								<input id="supportEmail" name="supportEmail" type="email" defaultValue={isCreating ? undefined : settings.supportEmail ?? ''} placeholder="support@company.com" className="glass-input w-full bg-transparent px-4 py-2 text-white outline-none rounded-lg border border-white/10" />
+								<input id="supportEmail" name="supportEmail" type="email" defaultValue="" placeholder="support@company.com" className="glass-input w-full bg-transparent px-4 py-2 text-white outline-none rounded-lg border border-white/10" />
 							</div>
 							<div>
 								<label className="block text-sm font-medium text-slate-300 mb-2" htmlFor="downpaymentAmountPerDevice">
 									Downpayment per device (PHP)
 								</label>
-								<input id="downpaymentAmountPerDevice" name="downpaymentAmountPerDevice" type="number" step="1" min="0" defaultValue={isCreating ? 1500 : settings.downpaymentAmountPerDevice ?? 1500} className="glass-input w-full bg-transparent px-4 py-2 text-white outline-none rounded-lg border border-white/10" />
+								<input id="downpaymentAmountPerDevice" name="downpaymentAmountPerDevice" type="number" step="1" min="0" defaultValue={1500} className="glass-input w-full bg-transparent px-4 py-2 text-white outline-none rounded-lg border border-white/10" />
 							</div>
 							<div>
 								<label className="block text-sm font-medium text-slate-300 mb-2" htmlFor="loginLockoutThreshold">
 									Login lockout threshold (failed attempts)
 								</label>
-								<input id="loginLockoutThreshold" name="loginLockoutThreshold" type="number" step="1" min="0" defaultValue={isCreating ? 5 : settings.loginLockoutThreshold ?? 5} className="glass-input w-full bg-transparent px-4 py-2 text-white outline-none rounded-lg border border-white/10" />
+								<input id="loginLockoutThreshold" name="loginLockoutThreshold" type="number" step="1" min="0" defaultValue={5} className="glass-input w-full bg-transparent px-4 py-2 text-white outline-none rounded-lg border border-white/10" />
 							</div>
 							<div className="flex items-center gap-3">
 								<label className="text-sm font-medium text-slate-300">Maintenance mode</label>
-								<input id="maintenanceMode" name="maintenanceMode" type="checkbox" defaultChecked={isCreating ? false : Boolean(settings.maintenanceMode)} className="h-4 w-4" />
+								<input id="maintenanceMode" name="maintenanceMode" type="checkbox" defaultChecked={false} className="h-4 w-4" />
 							</div>
 						</div>
 						<button className="px-6 py-2 bg-[#00d4ff] hover:bg-[#00b8e6] text-white font-medium rounded-lg transition-colors" type="submit">
