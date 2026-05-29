@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CalendarIcon, DownloadIcon } from 'lucide-react';
 import {
@@ -54,22 +54,46 @@ const areaData = [
 
 export default function ReportsPage() {
   const [view, setView] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
+  const [reports, setReports] = useState<any | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/reports');
+        if (!mounted) return;
+        const json = await res.json();
+        setReports(json);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to fetch reports', err);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const usageData = useMemo(() => {
-    if (view === 'daily') return dailyData;
-    if (view === 'weekly') return weeklyData;
-    return monthlyData;
-  }, [view]);
+    if (!reports) return monthlyData;
+    // use dailyTrends for admin-focused multi-series chart
+    const raw = reports.dailyTrends || [];
+    const mapped = raw.map((r: any) => ({
+      day: r.date.slice(5),
+      applications: r.applicationsCreated,
+      subscriptions: r.subscriptionsCreated,
+      payments: r.paymentsVerified,
+      newClients: r.newClients,
+    }));
+    return mapped.length ? mapped : monthlyData.map((m) => ({ day: m.day, applications: 0, subscriptions: 0, payments: 0, newClients: 0 }));
+  }, [reports]);
 
-  const periodLabel =
-    view === 'daily' ? 'Last 7 Days' : view === 'weekly' ? 'Last 4 Weeks' : 'Oct 1 - Oct 31, 2023';
+  const periodLabel = 'Last 30 days';
 
-  const totalUsage = useMemo(
-    () => usageData.reduce((sum, d) => sum + d.usage, 0),
-    [usageData],
-  );
-
-  const avgUsage = useMemo(() => (totalUsage / usageData.length).toFixed(1), [totalUsage, usageData]);
+  const totalApplications = useMemo(() => usageData.reduce((s: number, d: any) => s + (d.applications || 0), 0), [usageData]);
+  const totalSubscriptions = useMemo(() => usageData.reduce((s: number, d: any) => s + (d.subscriptions || 0), 0), [usageData]);
+  const totalPayments = useMemo(() => usageData.reduce((s: number, d: any) => s + (d.payments || 0), 0), [usageData]);
+  const totalNewClients = useMemo(() => usageData.reduce((s: number, d: any) => s + (d.newClients || 0), 0), [usageData]);
 
   const colors = ['#00d4ff', '#6366f1', '#10b981', '#f59e0b', '#ef4444'];
 
@@ -95,10 +119,18 @@ export default function ReportsPage() {
           <h1 className="text-3xl font-bold text-white tracking-tight">Reports & Analytics</h1>
           <p className="text-slate-400 mt-1">Detailed analysis of your energy consumption patterns.</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-[#00d4ff]/10 hover:bg-[#00d4ff]/20 text-[#00d4ff] rounded-lg border border-[#00d4ff]/20 transition-colors">
-          <DownloadIcon className="w-4 h-4" />
-          Export
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="text-sm text-slate-400 mr-2">Export:</div>
+          <a href="/api/reports/export?type=trends&format=csv" target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3 py-2 bg-[#0b1220] hover:bg-[#09101a] text-[#00d4ff] rounded-lg border border-[#00d4ff]/10 transition-colors">
+            <DownloadIcon className="w-4 h-4" /> CSV
+          </a>
+          <a href="/api/reports/export?type=trends&format=html" target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/6 text-white rounded-lg border border-white/6 transition-colors">
+            HTML
+          </a>
+          <a href="/api/reports/export?type=trends&format=pdf" target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3 py-2 bg-[#10b981] hover:bg-[#0ea56e] text-white rounded-lg border border-[#0ea56e]/20 transition-colors">
+            PDF
+          </a>
+        </div>
       </div>
 
       <motion.div variants={itemVariants} className="flex gap-2">
@@ -119,16 +151,10 @@ export default function ReportsPage() {
 
       <motion.div variants={itemVariants}>
         <GlassCard className="p-8">
-          <h2 className="text-lg font-semibold text-white mb-6">Energy Usage ({periodLabel})</h2>
+          <h2 className="text-lg font-semibold text-white mb-6">Admin Trends ({periodLabel})</h2>
           <div className="h-96">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={usageData}>
-                <defs>
-                  <linearGradient id="colorUsage" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00d4ff" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#00d4ff" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="day" stroke="#64748b" />
                 <YAxis stroke="#64748b" />
@@ -139,13 +165,10 @@ export default function ReportsPage() {
                     borderRadius: '12px',
                   }}
                 />
-                <Area
-                  type="monotone"
-                  dataKey="usage"
-                  stroke="#00d4ff"
-                  fillOpacity={1}
-                  fill="url(#colorUsage)"
-                />
+                <Area type="monotone" dataKey="applications" stroke="#00d4ff" fillOpacity={0.12} fill="#00d4ff"/>
+                <Area type="monotone" dataKey="subscriptions" stroke="#6366f1" fillOpacity={0.12} fill="#6366f1"/>
+                <Area type="monotone" dataKey="payments" stroke="#10b981" fillOpacity={0.12} fill="#10b981"/>
+                <Area type="monotone" dataKey="newClients" stroke="#f59e0b" fillOpacity={0.12} fill="#f59e0b"/>
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -154,53 +177,53 @@ export default function ReportsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <motion.div variants={itemVariants}>
+            <GlassCard>
+              <p className="text-sm text-slate-400 mb-2">Applications (30d)</p>
+              <p className="text-3xl font-bold text-white">{totalApplications}</p>
+              <p className="text-xs text-slate-500 mt-2">Submitted applications</p>
+            </GlassCard>
+        </motion.div>
+        <motion.div variants={itemVariants}>
+            <GlassCard>
+              <p className="text-sm text-slate-400 mb-2">Subscriptions (30d)</p>
+              <p className="text-3xl font-bold text-[#00d4ff]">{totalSubscriptions}</p>
+              <p className="text-xs text-slate-500 mt-2">New subscriptions started</p>
+            </GlassCard>
+        </motion.div>
+        <motion.div variants={itemVariants}>
+            <GlassCard>
+              <p className="text-sm text-slate-400 mb-2">Payments Verified (30d)</p>
+              <p className="text-3xl font-bold text-emerald-400">{totalPayments}</p>
+              <p className="text-xs text-slate-500 mt-2">Verified payment submissions</p>
+            </GlassCard>
+        </motion.div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+        <motion.div variants={itemVariants}>
           <GlassCard>
-            <p className="text-sm text-slate-400 mb-2">Total Usage</p>
-            <p className="text-3xl font-bold text-white">{totalUsage} kWh</p>
-            <p className="text-xs text-slate-500 mt-2">For {periodLabel}</p>
+            <p className="text-sm text-slate-400 mb-2">Active subscriptions</p>
+            <p className="text-3xl font-bold text-white">{reports ? reports.activeSubscriptions : '—'}</p>
+            <p className="text-xs text-slate-500 mt-2">Total active clients</p>
           </GlassCard>
         </motion.div>
         <motion.div variants={itemVariants}>
           <GlassCard>
-            <p className="text-sm text-slate-400 mb-2">Average Daily</p>
-            <p className="text-3xl font-bold text-[#00d4ff]">{avgUsage} kWh</p>
-            <p className="text-xs text-slate-500 mt-2">Per {view.slice(0, -2)}</p>
+            <p className="text-sm text-slate-400 mb-2">Pending payments</p>
+            <p className="text-3xl font-bold text-[#f59e0b]">{reports ? reports.pendingPayments : '—'}</p>
+            <p className="text-xs text-slate-500 mt-2">Awaiting verification</p>
           </GlassCard>
         </motion.div>
         <motion.div variants={itemVariants}>
           <GlassCard>
-            <p className="text-sm text-slate-400 mb-2">Estimated Cost</p>
-            <p className="text-3xl font-bold text-emerald-400">₱{(totalUsage * 0.15).toFixed(0)}</p>
-            <p className="text-xs text-slate-500 mt-2">At ₱0.15/kWh</p>
+            <p className="text-sm text-slate-400 mb-2">Revenue (this month)</p>
+            <p className="text-3xl font-bold text-emerald-400">₱{reports ? reports.verifiedPaymentsThisMonth : '—'}</p>
+            <p className="text-xs text-slate-500 mt-2">Verified payments</p>
           </GlassCard>
         </motion.div>
       </div>
 
-      <motion.div variants={itemVariants}>
-        <GlassCard className="p-8">
-          <h2 className="text-lg font-semibold text-white mb-6">Consumption by Area</h2>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={areaData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="name" stroke="#64748b" />
-                <YAxis stroke="#64748b" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                    borderColor: 'rgba(255,255,255,0.1)',
-                  }}
-                />
-                <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                  {areaData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </GlassCard>
-      </motion.div>
+      {/* Removed detailed consumption-by-area visualization to keep Reports focused on admin KPIs and DB-driven metrics. */}
     </motion.div>
   );
 }

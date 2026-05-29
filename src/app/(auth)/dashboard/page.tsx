@@ -3,6 +3,8 @@ import { ClockIcon } from 'lucide-react';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { DashboardDataProvider } from './DashboardDataProvider';
+import { getAdminDashboard } from '@/app/_actions/dashboard';
+import { GlassCard } from '../../components/GlassCard';
 
 export const metadata: Metadata = {
     title: 'Dashboard | PowerTrack',
@@ -68,6 +70,9 @@ export default async function DashboardPage() {
         day: 'numeric',
     });
 
+    // fetch admin-focused metrics for KPI strip
+    const admin = await getAdminDashboard();
+
     return (
         <div className="max-w-7xl mx-auto space-y-6 p-6">
             {/* Header */}
@@ -83,22 +88,83 @@ export default async function DashboardPage() {
                     </span>
                 </div>
             </div>
+            {/* Admin KPI strip: top-level counts for admins */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <GlassCard>
+                    <p className="text-sm text-slate-400">Total Clients</p>
+                    <p className="text-2xl font-bold text-white">{admin.totalClients}</p>
+                </GlassCard>
+                <GlassCard>
+                    <p className="text-sm text-slate-400">Active Subscriptions</p>
+                    <p className="text-2xl font-bold text-white">{admin.activeSubscriptions}</p>
+                </GlassCard>
+                <GlassCard>
+                    <p className="text-sm text-slate-400">Pending Payments</p>
+                    <p className="text-2xl font-bold text-[#f59e0b]">{admin.pendingPayments}</p>
+                </GlassCard>
+                <GlassCard>
+                    <p className="text-sm text-slate-400">Revenue (month)</p>
+                    <p className="text-2xl font-bold text-emerald-400">₱{admin.verifiedPaymentsThisMonth}</p>
+                </GlassCard>
+            </div>
 
-            <DashboardDataProvider>
-                {/* Metrics Section */}
-                <section aria-label="Key Performance Indicators">
-                    <Suspense fallback={<MetricsCardsSkeleton />}>
-                        <MetricsCards />
-                    </Suspense>
-                </section>
-
-                {/* Coverage card */}
-                <section aria-label="Data Coverage">
-                    <Suspense fallback={<CoverageCardsSkeleton />}>
-                        <CoverageCards />
-                    </Suspense>
-                </section>
-            </DashboardDataProvider>
+            {/* Recent admin activity: show recent applications and pending payments */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <GlassCard>
+                    <h2 className="text-lg font-semibold text-white mb-4">Recent Applications</h2>
+                    {/* server-rendered list */}
+                    {/* render recent applications from server action */}
+                    <div className="space-y-3">
+                        {admin.recentApplications.length === 0 && <p className="text-sm text-slate-500">No recent applications.</p>}
+                        {admin.recentApplications.map((r) => (
+                            <div key={r.id} className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-white">{r.fullName}</p>
+                                    <p className="text-xs text-slate-400">Ticket {r.ticketNumber} • {new Date(r.submittedAt).toLocaleDateString()}</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="text-sm text-slate-300">{r.status}</div>
+                                    <a href={`/applications/${r.id}`} className="text-xs text-[#00d4ff]">Review</a>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </GlassCard>
+                <GlassCard>
+                    <h2 className="text-lg font-semibold text-white mb-4">Pending Payments</h2>
+                    {/* render pending payments from server action */}
+                    <div className="space-y-3">
+                        {admin.pendingPaymentsList.length === 0 && <p className="text-sm text-slate-500">No pending payments.</p>}
+                        {admin.pendingPaymentsList.map((p) => (
+                            <div key={p.referenceNumber} className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-white">{p.userName ?? p.userEmail ?? p.referenceNumber}</p>
+                                    <p className="text-xs text-slate-400">Ref {p.referenceNumber} • {new Date(p.submittedAt).toLocaleDateString()}</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="text-sm font-medium text-emerald-400">₱{p.amount}</div>
+                                    <a href={`/payments`} className="text-xs text-[#00d4ff]">Verify</a>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </GlassCard>
+            </div>
+            {/* Trending plans */}
+            <div className="mt-4">
+                <GlassCard>
+                    <h3 className="text-sm text-slate-400 mb-3">Trending Plans (last 30 days)</h3>
+                    <div className="space-y-2">
+                        {admin.trendingPlans.length === 0 && <p className="text-sm text-slate-500">No recent subscriptions.</p>}
+                        {admin.trendingPlans.map((t) => (
+                            <div key={t.planId} className="flex items-center justify-between">
+                                <div className="text-sm text-white">{t.planName ?? t.planId}</div>
+                                <div className="text-sm text-slate-400">{t.count}</div>
+                            </div>
+                        ))}
+                    </div>
+                </GlassCard>
+            </div>
         </div>
     );
 }

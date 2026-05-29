@@ -179,3 +179,62 @@ export async function getDashboardData(): Promise<DashboardData> {
         latestReadingAt: latestReading?.receivedAt ?? null,
     };
 }
+
+// Admin-focused dashboard data: KPIs and recent activity
+export type AdminDashboardData = {
+    totalClients: number;
+    activeSubscriptions: number;
+    pendingPayments: number;
+    verifiedPaymentsThisMonth: number;
+    recentApplications: Array<{ id: string; ticketNumber: string; fullName: string; status: string; submittedAt: Date }>;
+    pendingPaymentsList: Array<{ referenceNumber: string; amount: number; submittedAt: Date; userName?: string | null; userEmail?: string | null; subscriptionId?: string | null }>;
+    trendingPlans: Array<{ planId: string; planName: string | null; count: number }>;
+};
+
+export async function getAdminDashboard(): Promise<AdminDashboardData> {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const start30 = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29);
+
+    const [totalClients, activeSubscriptions, pendingPayments, verifiedPaymentsSum, recentApplications, pendingPaymentsList, recentSubs] = await Promise.all([
+        prisma.user.count({ where: { role: 'CLIENT' } }),
+        prisma.clientSubscription.count({ where: { status: 'active' } }),
+        prisma.paymentSubmission.count({ where: { status: 'PENDING_VERIFICATION' } }),
+        prisma.paymentSubmission.aggregate({ _sum: { amount: true }, where: { status: 'VERIFIED', createdAt: { gte: monthStart } } }).then(r => r._sum.amount ?? 0),
+        prisma.application.findMany({ orderBy: { submittedAt: 'desc' }, take: 6, select: { id: true, ticketNumber: true, fullName: true, status: true, submittedAt: true } }),
+        prisma.paymentSubmission.findMany({ where: { status: 'PENDING_VERIFICATION' }, orderBy: { submittedAt: 'desc' }, take: 6, select: { referenceNumber: true, amount: true, submittedAt: true, user: { select: { name: true, email: true } }, subscriptionId: true } }),
+        prisma.clientSubscription.findMany({ where: { startedAt: { gte: start30 } }, select: { planId: true, plan: { select: { id: true, name: true } } } }),
+    ]);
+
+    // build trending plans counts
+    const planMap: Record<string, { planName: string | null; count: number }> = {};
+    for (const s of recentSubs) {
+        const pid = s.planId;
+        planMap[pid] ??= { planName: s.plan?.name ?? null, count: 0 };
+        planMap[pid].count += 1;
+    }
+
+    const trendingPlans = Object.entries(planMap)
+        .map(([planId, v]) => ({ planId, planName: v.planName, count: v.count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+
+    const pendingFormatted = pendingPaymentsList.map((p: any) => ({
+        referenceNumber: p.referenceNumber,
+        amount: p.amount,
+        submittedAt: p.submittedAt,
+        userName: p.user?.name ?? null,
+        userEmail: p.user?.email ?? null,
+        subscriptionId: p.subscriptionId ?? null,
+    }));
+
+    return {
+        totalClients,
+        activeSubscriptions,
+        pendingPayments,
+        verifiedPaymentsThisMonth: verifiedPaymentsSum,
+        recentApplications: recentApplications.map(r => ({ id: r.id, ticketNumber: r.ticketNumber, fullName: r.fullName, status: r.status, submittedAt: r.submittedAt })),
+        pendingPaymentsList: pendingFormatted,
+        trendingPlans,
+    };
+}
