@@ -24,3 +24,26 @@ export function parsePricePerKilowattHour(formData: FormData): PricePerKilowattH
 		value,
 	};
 }
+
+export function parseOptionalString(formData: FormData, key: string): string | null {
+	const raw = formData.get(key);
+	if (typeof raw === 'string') {
+		const v = raw.trim();
+		return v === '' ? null : v;
+	}
+	return null;
+}
+
+export function parseIntegerField(formData: FormData, key: string, fallback: number | null = null): number | null {
+	const raw = formData.get(key);
+	if (typeof raw === 'string' && raw !== '') {
+		const n = Number(raw);
+		if (Number.isFinite(n)) return Math.trunc(n);
+	}
+	return fallback;
+}
+
+export function parseBooleanField(formData: FormData, key: string): boolean {
+	const raw = formData.get(key);
+	return raw === 'on' || raw === 'true' || raw === '1';
+}
