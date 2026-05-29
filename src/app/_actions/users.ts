@@ -538,6 +538,20 @@ export async function createUserAccount(input: CreateAccountInput): Promise<Crea
 	});
 
 	if (input.role === 'CLIENT' && approvedApplication) {
+		const startedAt = new Date();
+
+		// Default grace period: set the first billing due date to the 20th, two months from the start date.
+		const nextDueDate = (() => {
+			const d = new Date(startedAt);
+			// Advance two months
+			d.setMonth(d.getMonth() + 2);
+			// Set to 20th of that month
+			d.setDate(20);
+			// Normalize time to start of day
+			d.setHours(0, 0, 0, 0);
+			return d;
+		})();
+
 		await prisma.$transaction([
 			prisma.clientSubscription.create({
 				data: {
@@ -548,7 +562,9 @@ export async function createUserAccount(input: CreateAccountInput): Promise<Crea
 					deviceCap: approvedApplication.planDeviceCap,
 					monthlyPrice: approvedApplication.planMonthlyPrice,
 					status: 'active',
-					startedAt: new Date(),
+					startedAt,
+					billingCycleDay: 20,
+					nextDueDate,
 				},
 			}),
 			prisma.application.update({

@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { requireAdminFromHeaders } from '@/lib/auth';
 import { uploadFileToSupabase } from '@/lib/supabase-storage';
+import { sendApplicationSubmittedEmail } from './email';
 
 export type CreateApplicationResult = {
 	applicationId: string;
@@ -204,6 +205,14 @@ export async function addApplication(formData: FormData): Promise<CreateApplicat
 			branchSnapshots: branchSnapshots,
 		},
 	});
+
+	// send submission confirmation email if email provided
+	try {
+		await sendApplicationSubmittedEmail(email, fullName, ticketNumber);
+	} catch (err) {
+		// eslint-disable-next-line no-console
+		console.error('Failed to send application submitted email', err);
+	}
 
 	revalidatePath('/applications');
 
