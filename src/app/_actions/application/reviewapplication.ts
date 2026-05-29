@@ -58,7 +58,7 @@ export async function reviewApplication(input: ReviewApplicationInput): Promise<
 			if (app?.email) {
 				const now = new Date();
 				// base date is 7 days from now
-				let installDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+				const installDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 				const day = installDate.getDay(); // 0 = Sun, 6 = Sat
 				if (day === 6) {
 					// Saturday -> add 2 days to Monday
