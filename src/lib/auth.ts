@@ -147,10 +147,10 @@ export function isAdminRole(role?: string | null) {
 }
 
 // Require that the session exists and that the user has ADMIN or SUPERADMIN role.
-export async function requireAdminFromHeaders(headers: any) {
+export async function requireAdminFromHeaders(headers: Headers) {
     const session = await auth.api.getSession({ headers });
     if (!session?.user) throw new Error('Unauthorized');
-    const role = (session.user as any).role as string | undefined;
+    const role = (session.user as { role?: string | null }).role ?? undefined;
     if (!isAdminRole(role)) throw new Error('Forbidden');
     return session;
 }

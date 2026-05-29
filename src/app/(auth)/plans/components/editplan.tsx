@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 
 type Props = {
@@ -13,7 +13,7 @@ type Props = {
     monthlyPrice: number;
     deviceCap: number;
     description?: string | null;
-    features?: any | null;
+    features?: unknown;
     isPopular?: boolean;
     isActive?: boolean;
   } | null;
@@ -30,26 +30,19 @@ type Props = {
 };
 
 export function EditPlanModal({ isOpen, onClose, plan, onSubmit }: Props) {
-  const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [monthlyPrice, setMonthlyPrice] = useState('0');
-  const [deviceCap, setDeviceCap] = useState('0');
-  const [description, setDescription] = useState('');
-  const [features, setFeatures] = useState('');
-  const [isPopular, setIsPopular] = useState(false);
-  const [isActive, setIsActive] = useState(true);
-
-  useEffect(() => {
-    if (!plan) return;
-    setName(plan.name);
-    setSlug(plan.slug);
-    setMonthlyPrice(String(plan.monthlyPrice));
-    setDeviceCap(String(plan.deviceCap));
-    setDescription(plan.description ?? '');
-    setFeatures(Array.isArray(plan.features) ? plan.features.join(', ') : (plan.features ?? ''));
-    setIsPopular(Boolean(plan.isPopular));
-    setIsActive(Boolean(plan.isActive));
-  }, [plan]);
+  const featuresText = Array.isArray(plan?.features)
+    ? plan.features.join(', ')
+    : typeof plan?.features === 'string'
+      ? plan.features
+      : '';
+  const [name, setName] = useState(() => plan?.name ?? '');
+  const [slug, setSlug] = useState(() => plan?.slug ?? '');
+  const [monthlyPrice, setMonthlyPrice] = useState(() => String(plan?.monthlyPrice ?? 0));
+  const [deviceCap, setDeviceCap] = useState(() => String(plan?.deviceCap ?? 0));
+  const [description, setDescription] = useState(() => plan?.description ?? '');
+  const [features, setFeatures] = useState(() => featuresText);
+  const [isPopular, setIsPopular] = useState(() => Boolean(plan?.isPopular));
+  const [isActive, setIsActive] = useState(() => Boolean(plan?.isActive ?? true));
 
   if (!isOpen || !plan) return null;
 

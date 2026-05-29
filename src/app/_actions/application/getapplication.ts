@@ -45,6 +45,59 @@ export type ApplicationManagementItem = {
 	specialRequirements: string | null;
 };
 
+type ApplicationBranchSnapshot = {
+	name: string;
+	city?: string;
+	province?: string;
+	address?: string;
+	notes?: string;
+};
+
+function isApplicationManagementDocument(
+	document: ApplicationManagementDocument | null,
+): document is ApplicationManagementDocument {
+	return document !== null;
+}
+
+function normalizeBranches(
+	branchSnapshots: unknown,
+	branch: {
+		name: string;
+		city: string | null;
+		province: string | null;
+		address: string | null;
+		notes: string | null;
+	} | null,
+): ApplicationBranchSnapshot[] {
+	if (Array.isArray(branchSnapshots)) {
+		return branchSnapshots.filter((item): item is ApplicationBranchSnapshot => {
+			if (!item || typeof item !== 'object') {
+				return false;
+			}
+
+			return typeof (item as ApplicationBranchSnapshot).name === 'string';
+		}).map(item => ({
+			name: item.name,
+			city: item.city,
+			province: item.province,
+			address: item.address,
+			notes: item.notes,
+		}));
+	}
+
+	if (branch) {
+		return [{
+			name: branch.name ?? '',
+			city: branch.city ?? '',
+			province: branch.province ?? '',
+			address: branch.address ?? '',
+			notes: branch.notes ?? '',
+		}];
+	}
+
+	return [];
+}
+
 function normalizeStatus(value: string): ApplicationManagementItem['status'] {
 	switch (value.toUpperCase()) {
 		case 'SUBMITTED':
@@ -85,8 +138,7 @@ export async function fetchApplicationsForManagement(): Promise<ApplicationManag
 	const requestHeaders = await headers();
 	await requireAdminFromHeaders(requestHeaders);
 
-	const database = prisma as any;
-	const applications = await database.application.findMany({
+	const applications = await prisma.application.findMany({
 		orderBy: [{ submittedAt: 'desc' }, { updatedAt: 'desc' }],
 		include: {
 			plan: true,
@@ -95,7 +147,7 @@ export async function fetchApplicationsForManagement(): Promise<ApplicationManag
 		},
 	});
 
-	return applications.map((application: any) => ({
+	return applications.map(application => ({
 		id: application.id,
 		ticketNumber: application.ticketNumber,
 		fullName: application.fullName,
@@ -112,13 +164,7 @@ export async function fetchApplicationsForManagement(): Promise<ApplicationManag
 		branchAddress: application.branch?.address ?? '',
 		branchNotes: application.branch?.notes ?? null,
 		branchCode: application.branch?.code ?? '',
-		branches: Array.isArray(application.branchSnapshots) ? application.branchSnapshots : application.branch ? [{
-			name: application.branch.name ?? '',
-			city: application.branch.city ?? '',
-			province: application.branch.province ?? '',
-			address: application.branch.address ?? '',
-			notes: application.branch.notes ?? '',
-		}] : [],
+		branches: normalizeBranches(application.branchSnapshots, application.branch),
 		status: normalizeStatus(application.status),
 		statusLabel: getStatusLabel(normalizeStatus(application.status)),
 		statusReason: application.statusReason ?? null,
@@ -136,7 +182,7 @@ export async function fetchApplicationsForManagement(): Promise<ApplicationManag
 			application.validIdBackFileName || application.validIdBackUrl
 				? { name: application.validIdBackFileName || 'Valid ID Back', url: application.validIdBackUrl ?? null, mimeType: application.validIdBackMimeType ?? null }
 				: null,
-		].filter(Boolean),
+		].filter(isApplicationManagementDocument),
 		specialRequirements: application.specialRequirements ?? null,
 	}));
 }

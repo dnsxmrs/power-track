@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { requireAdminFromHeaders } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@/generated/prisma/client';
 
 export type CreatePlanInput = {
   name: string;
@@ -11,7 +12,7 @@ export type CreatePlanInput = {
   monthlyPrice: number;
   deviceCap: number;
   description?: string;
-  features?: any;
+  features?: Prisma.InputJsonValue;
   isPopular?: boolean;
   isActive?: boolean;
 };
@@ -20,20 +21,18 @@ export async function createPlan(input: CreatePlanInput) {
   const requestHeaders = await headers();
   try {
     await requireAdminFromHeaders(requestHeaders);
-  } catch (err) {
+  } catch {
     throw new Error('Unauthorized');
   }
 
-  const database = prisma as any;
-
-  await database.subscriptionPlan.create({
+  await prisma.subscriptionPlan.create({
     data: {
       name: input.name.trim(),
       slug: input.slug.trim(),
       monthlyPrice: Math.max(0, Math.floor(Number(input.monthlyPrice) || 0)),
       deviceCap: Math.max(0, Math.floor(Number(input.deviceCap) || 0)),
       description: input.description ?? null,
-      features: input.features ?? null,
+      features: input.features,
       isPopular: Boolean(input.isPopular),
       isActive: input.isActive ?? true,
     },
